@@ -1,4 +1,4 @@
 import { ReactiveSentence, SentenceCaretaker } from "./ReactiveSentence";
-import { SentenceSVG } from "./SentenceSVG";
+import { SentenceSVG, defaultSentenceSVGOptions } from "./SentenceSVG";
 
-export default { ReactiveSentence, SentenceCaretaker, SentenceSVG };
+export default { ReactiveSentence, SentenceCaretaker, SentenceSVG, defaultSentenceSVGOptions };

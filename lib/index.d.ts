@@ -4,5 +4,6 @@ declare const _default: {
     ReactiveSentence: typeof ReactiveSentence;
     SentenceCaretaker: typeof SentenceCaretaker;
     SentenceSVG: typeof SentenceSVG;
+    defaultSentenceSVGOptions: () => import("./SentenceSVG").SentenceSVGOptions;
 };
 export default _default;
