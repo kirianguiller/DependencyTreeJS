@@ -53,6 +53,8 @@ export class SentenceSVG extends EventDispatcher {
   totalWidth = 0;
   totalHeight = 0;
   levelsArray: number[] = [];
+  orderOfTokens: string[] = [];
+  oldIdToNewId: { [key: number]: number } = {};
   options: SentenceSVGOptions = defaultSentenceSVGOptions();
 
   // constructor(opts: SentenceSVGOptions) {
@@ -85,6 +87,7 @@ export class SentenceSVG extends EventDispatcher {
 
   drawTree() {
     this.snapSentence.clear();
+    this.populateOrderOfTokens()
     this.populateLevels();
     this.populateTokenSVGs();
     this.drawRelations();
@@ -120,13 +123,42 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
-  // TODO RTL : add getOrderOfTokens()
   // The idea is to get the order of tokens visualized (from left to right).
   // For instance, for a sentence of 6 tokens all in hebrew (all rtl), we should return [6,5,4,3,2,1]
   // Be careful to not return grouped tokens
-  // getOrderOfTokens(): number[] {
-  //   return [1,2,3,9,8,7,6]
-  // }
+  populateOrderOfTokens(): void {
+    let stack = []
+    let orderOfTokens: string[] = []
+    for (const tokenIndex in this.treeJson) {
+      const tokenJson = this.treeJson[tokenIndex]
+      if (tokenJson.isGroup) {
+        // skip if it's a group token
+        continue
+      }
+      if (this.metaJson.rtl === "yes") {
+        // the full sentence is in RTL mode
+        stack.push(tokenIndex)
+        if (tokenJson.MISC.rtl !== "no") {
+          // the token is not in RTL mode (his following token will be at his right)
+          orderOfTokens = stack.concat(orderOfTokens)
+          stack = []
+        }
+      } else {
+        // the full sentence is in conventional mode
+        stack.unshift(tokenIndex)
+        if (tokenJson.MISC.rtl !== "yes") {
+          // the token is in RTL mode (his following token will be at his left)
+          orderOfTokens = orderOfTokens.concat(JSON.parse(JSON.stringify(stack)))
+          stack = []
+        }
+      }
+    }
+    if (this.metaJson.rtl === "yes") {
+      this.orderOfTokens = stack.concat(orderOfTokens)
+    } else {
+      this.orderOfTokens = orderOfTokens.concat(stack)
+    }
+  }
 
   populateTokenSVGs(): void {
     let runningX = 0;
@@ -135,9 +167,7 @@ export class SentenceSVG extends EventDispatcher {
       SVG_CONFIG.startTextY + maxLevelY * SVG_CONFIG.depLevelHeight;
 
     // TODO RTL : add iterating through new  getOrderOfTokens()
-    for (const tokenJsonIndex in this.treeJson) {
-      if (this.treeJson[tokenJsonIndex]) {
-
+    for (const tokenJsonIndex of this.orderOfTokens) {
         const tokenJson = this.treeJson[tokenJsonIndex];
         if (tokenJson.isGroup === true) {
           continue;
@@ -152,14 +182,36 @@ export class SentenceSVG extends EventDispatcher {
           runningX,
           offsetY
         );
-        tokenSVG.ylevel = this.levelsArray[tokenSvgIndex];
+      tokenSVG.ylevel = this.levelsArray[this.oldIdToNewId[tokenSvgIndex]];
         runningX += tokenSVG.width;
       }
     }
-  }
 
   updateToken(tokenJson: TokenJson): void {
     this.treeJson[tokenJson.ID] = tokenJson;
+  }
+
+  getHeadsIdsArray(): number[] {
+    this.oldIdToNewId = {}
+    let i = 1
+    for (const tokenJsonIndex of this.orderOfTokens) {
+      this.oldIdToNewId[parseInt(tokenJsonIndex)] = i
+      i = i + 1
+    }
+    const headsIdsArray = []
+    for (const tokenJsonIndex of this.orderOfTokens) {
+      const tokenJson = this.treeJson[tokenJsonIndex]
+      if (!tokenJson.isGroup) {
+        if (tokenJson.HEAD >= 1) {
+          headsIdsArray.push(this.oldIdToNewId[tokenJson.HEAD])
+
+        } else {
+          headsIdsArray.push(tokenJson.HEAD)
+        }
+
+      }
+    }
+    return headsIdsArray
   }
 
   populateLevels(): void {
@@ -167,37 +219,19 @@ export class SentenceSVG extends EventDispatcher {
     // ... element is appended at the beginning of the array for easing the loop task
     // ... (mainly because conll indexes start from 1 and not 0)
 
-    // array of all heads, TODO : improve
-    const headsIdArray = [-1].concat(
-      Object.values(this.treeJson)
-        .filter(tokenJson => {
-          return tokenJson.isGroup === false;
-        })
-        .map(
-          tokenJson => {
-            return tokenJson.HEAD;
-          }
-          // const head = parseInt(x["HEAD"]);
-          // const head = x["HEAD"];
-          // if (head || head === 0) {
-          // return head;
-          // } else {
-          // return -1;
-          // }
-        )
-    );
-    this.levelsArray = Array.apply(null, Array(headsIdArray.length)).map(
-      () => {
-        return -1;
-      }
-    );
-    for (let i = 1; i < headsIdArray.length; i++) {
-      this.getLevel(headsIdArray, i, 1, headsIdArray.length);
+    let headsIdsArray = this.getHeadsIdsArray()
+
+    // add -1 at the beginning of the array for simplifying indexing later
+    headsIdsArray = [-1].concat(headsIdsArray)
+
+    this.levelsArray = new Array(headsIdsArray.length).fill(-1)
+    for (let i = 1; i < headsIdsArray.length; i++) {
+      this.getLevel(headsIdsArray, i, 1, headsIdsArray.length);
     }
   }
 
   getLevel(
-    headsIdArray: number[],
+    headsIdsArray: number[],
     index: number,
     start: number,
     end: number
@@ -205,7 +239,7 @@ export class SentenceSVG extends EventDispatcher {
     if (this.levelsArray[index] !== -1) {
       return this.levelsArray[index];
     }
-    const headId = headsIdArray[index];
+    const headId = headsIdsArray[index];
     if (headId < start || end < headId) {
       if (headId === 0) {
         this.levelsArray[index] = 0;
@@ -222,11 +256,11 @@ export class SentenceSVG extends EventDispatcher {
     const levelsSubArray = [];
 
     for (let i = inf; i <= sup; i++) {
-      if (i === index || headsIdArray[headsIdArray[i]] === i) {
+      if (i === index || headsIdsArray[headsIdsArray[i]] === i) {
         levelsSubArray.push(0);
-      } else if (inf <= headsIdArray[i] && headsIdArray[i] <= sup) {
+      } else if (inf <= headsIdsArray[i] && headsIdsArray[i] <= sup) {
         // sup is outside the scope for avoiding infinite recursion loop
-        levelsSubArray.push(this.getLevel(headsIdArray, i, inf, sup));
+        levelsSubArray.push(this.getLevel(headsIdsArray, i, inf, sup));
       }
     }
 
@@ -501,8 +535,10 @@ class TokenSVG {
       arcPath = getArcPathRoot(xFrom, yLow);
     } else {
       yTop = heightArc;
+      const newId = this.sentenceSVG.oldIdToNewId[parseInt(this.tokenJson.ID, 10)]
+      const newHead = this.sentenceSVG.oldIdToNewId[this.tokenJson.HEAD]
       xTo =
-        parseInt(this.tokenJson.ID, 10) > this.tokenJson.HEAD
+        newId > newHead
           ? headCoordX + SVG_CONFIG.gapX / 2
           : headCoordX - SVG_CONFIG.gapX / 2;
       arcPath = getArcPath(xFrom, xTo, yLow, yTop);
