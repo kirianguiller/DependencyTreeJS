@@ -4,6 +4,8 @@
     "tslint-config-prettier"
   ],
   "rules": {
-    "no-string-literal": false
+    "no-string-literal": false,
+    "max-classes-per-file": false,
+    "no-console": false
   }
 }

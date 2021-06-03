@@ -4,7 +4,7 @@
   "description": "Core data structure for dependency tree in the browser",
   "main": "index.js",
   "scripts": {
-    "test": "jest --config jestconfig.json",
+    "test": "", 
     "watch": "jest --config jestconfig.json --watch --verbose=false",
     "build": "webpack",
     "format": "prettier --write \"src/*.ts\"",

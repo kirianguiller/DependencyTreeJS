@@ -11,7 +11,7 @@ import { ReactiveSentence } from "./ReactiveSentence";
 const SVG_CONFIG = {
   startTextY: 10,
   textgraphdistance: 10,
-  dragclickthreshold: 400, //ms
+  dragclickthreshold: 400, // ms
   depLevelHeight: 60,
   arrowheadsize: 5,
   gapX: 18, // TODO set it properly elsewhere SVG_CONFIG
@@ -136,22 +136,25 @@ export class SentenceSVG extends EventDispatcher {
 
     // TODO RTL : add iterating through new  getOrderOfTokens()
     for (const tokenJsonIndex in this.treeJson) {
-      const tokenJson = this.treeJson[tokenJsonIndex];
-      if (tokenJson.isGroup === true) {
-        continue;
-      }
-      const tokenSvgIndex = parseInt(tokenJson.ID, 10);
+      if (this.treeJson[tokenJsonIndex]) {
 
-      const tokenSVG = new TokenSVG(tokenJson, this);
-      this.tokenSVGs[tokenSvgIndex] = tokenSVG;
-      tokenSVG.createSnap(
-        this.snapSentence,
-        this.options.shownFeatures,
-        runningX,
-        offsetY
-      );
-      tokenSVG.ylevel = this.levelsArray[tokenSvgIndex];
-      runningX += tokenSVG.width;
+        const tokenJson = this.treeJson[tokenJsonIndex];
+        if (tokenJson.isGroup === true) {
+          continue;
+        }
+        const tokenSvgIndex = parseInt(tokenJson.ID, 10);
+
+        const tokenSVG = new TokenSVG(tokenJson, this);
+        this.tokenSVGs[tokenSvgIndex] = tokenSVG;
+        tokenSVG.createSnap(
+          this.snapSentence,
+          this.options.shownFeatures,
+          runningX,
+          offsetY
+        );
+        tokenSVG.ylevel = this.levelsArray[tokenSvgIndex];
+        runningX += tokenSVG.width;
+      }
     }
   }
 
@@ -184,7 +187,7 @@ export class SentenceSVG extends EventDispatcher {
         )
     );
     this.levelsArray = Array.apply(null, Array(headsIdArray.length)).map(
-      function () {
+      () => {
         return -1;
       }
     );
@@ -199,7 +202,7 @@ export class SentenceSVG extends EventDispatcher {
     start: number,
     end: number
   ): number {
-    if (this.levelsArray[index] != -1) {
+    if (this.levelsArray[index] !== -1) {
       return this.levelsArray[index];
     }
     const headId = headsIdArray[index];
@@ -219,7 +222,7 @@ export class SentenceSVG extends EventDispatcher {
     const levelsSubArray = [];
 
     for (let i = inf; i <= sup; i++) {
-      if (i == index || headsIdArray[headsIdArray[i]] == i) {
+      if (i === index || headsIdArray[headsIdArray[i]] === i) {
         levelsSubArray.push(0);
       } else if (inf <= headsIdArray[i] && headsIdArray[i] <= sup) {
         // sup is outside the scope for avoiding infinite recursion loop
@@ -337,15 +340,18 @@ export class SentenceSVG extends EventDispatcher {
     };
 
     for (const tokenIndex in teacherTreeJson) {
-      for (const tag in corrects) {
-        if (
-          teacherTreeJson[tokenIndex][tag] != "_" &&
-          !Object.is(teacherTreeJson[tokenIndex][tag], NaN)
-        ) {
-          corrects[tag] += +(
-            teacherTreeJson[tokenIndex][tag] == currentTreeJson[tokenIndex][tag]
-          );
-          totals[tag]++;
+      if (teacherTreeJson[tokenIndex]) {
+
+        for (const tag in corrects) {
+          if (
+            teacherTreeJson[tokenIndex][tag] !== "_" &&
+            !Object.is(teacherTreeJson[tokenIndex][tag], NaN)
+          ) {
+            corrects[tag] += +(
+              teacherTreeJson[tokenIndex][tag] === currentTreeJson[tokenIndex][tag]
+            );
+            totals[tag]++;
+          }
         }
       }
     }
@@ -491,12 +497,12 @@ class TokenSVG {
     const yLow = this.startY - SVG_CONFIG.sizeFontY;
     let yTop = 0;
     let arcPath = "";
-    if (headCoordX == 0) {
+    if (headCoordX === 0) {
       arcPath = getArcPathRoot(xFrom, yLow);
     } else {
       yTop = heightArc;
       xTo =
-        parseInt(this.tokenJson.ID) > this.tokenJson.HEAD
+        parseInt(this.tokenJson.ID, 10) > this.tokenJson.HEAD
           ? headCoordX + SVG_CONFIG.gapX / 2
           : headCoordX - SVG_CONFIG.gapX / 2;
       arcPath = getArcPath(xFrom, xTo, yLow, yTop);
@@ -513,7 +519,7 @@ class TokenSVG {
     let deprelY = snapArc.getBBox().y - 5;
 
     // replace the deprel when it's the root
-    if (headCoordX == 0) {
+    if (headCoordX === 0) {
       deprelX += 20;
       deprelY = 30;
     }
@@ -543,7 +549,7 @@ class TokenSVG {
           detail: {
             treeNode: this,
             targetLabel: label,
-            clicked: parseInt(this.tokenJson.ID),
+            clicked: parseInt(this.tokenJson.ID, 10),
             event: e
           }
         });
@@ -561,16 +567,16 @@ class TokenSVG {
     this.snapElements["FORM"].mouseover(() => {
       if (
         this.sentenceSVG.dragged &&
-        parseInt(this.tokenJson.ID) !== this.sentenceSVG.dragged
+        parseInt(this.tokenJson.ID, 10) !== this.sentenceSVG.dragged
       ) {
         this.snapElements["FORM"].addClass("glossy");
-        this.sentenceSVG.hovered = parseInt(this.tokenJson.ID);
+        this.sentenceSVG.hovered = parseInt(this.tokenJson.ID, 10);
       }
     });
     this.snapElements["FORM"].mouseout(() => {
       if (
         this.sentenceSVG.dragged &&
-        parseInt(this.tokenJson.ID) !== this.sentenceSVG.dragged
+        parseInt(this.tokenJson.ID, 10) !== this.sentenceSVG.dragged
       ) {
         this.snapElements["FORM"].removeClass("glossy");
         this.sentenceSVG.hovered = 0;
@@ -613,7 +619,7 @@ class TokenSVG {
     this.draggedStartX = this.centerX;
     this.draggedStartY = this.draggedForm.getBBox().y;
 
-    this.sentenceSVG.dragged = parseInt(this.tokenJson.ID);
+    this.sentenceSVG.dragged = parseInt(this.tokenJson.ID, 10);
 
     const xb = this.draggedStartX;
     const yb = this.draggedStartY;
@@ -678,13 +684,13 @@ class TokenSVG {
     // TODO : softcode the leveldistance
     const leveldistance = SVG_CONFIG.depLevelHeight;
     if (yb + dy < leveldistance / 2 && Math.abs(dx) < leveldistance / 2) {
-      if (this.dragRootCircle == undefined) {
+      if (this.dragRootCircle === undefined) {
         this.dragRootCircle = this.snapSentence
           .circle(xb, 0, leveldistance / 2)
           .addClass("dragcurve");
       }
     } else {
-      if (this.dragRootCircle != undefined) {
+      if (this.dragRootCircle !== undefined) {
         this.dragRootCircle.remove();
         this.dragRootCircle = undefined;
       }
@@ -701,7 +707,7 @@ class TokenSVG {
       event = new CustomEvent("svg-click", {
         detail: {
           treeNode: this,
-          clicked: parseInt(this.tokenJson.ID),
+          clicked: parseInt(this.tokenJson.ID, 10),
           targetLabel: "FORM"
         }
       });
@@ -736,7 +742,7 @@ class TokenSVG {
     );
     this.draggedCurve.remove();
     this.draggedArrowhead.remove();
-    if (this.dragRootCircle != undefined) {
+    if (this.dragRootCircle !== undefined) {
       this.dragRootCircle.remove();
       this.dragRootCircle = undefined;
     }

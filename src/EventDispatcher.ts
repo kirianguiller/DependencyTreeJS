@@ -4,7 +4,7 @@
  */
 
 export class EventDispatcher {
-  _listeners: { [key: string]: Function[] } = {};
+  _listeners: { [key: string]: ((event: Event)=> void)[] } = {};
 
   constructor() {
     // do nothing

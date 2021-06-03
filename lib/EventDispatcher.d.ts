@@ -4,11 +4,11 @@
  */
 export declare class EventDispatcher {
     _listeners: {
-        [key: string]: Function[];
+        [key: string]: ((event: Event) => void)[];
     };
     constructor();
     addEventListener(type: string, listener: (event: Event) => void): void;
-    hasEventListener(type: string, listener: () => void): boolean;
-    removeEventListener(type: string, listener: () => void): void;
+    hasEventListener(type: string, listener: any): boolean;
+    removeEventListener(type: string, listener: any): void;
     dispatchEvent(event: Event): void;
 }

@@ -152,7 +152,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
     let idLastToken = "1";
     for (const tokenJson of Object.values(this.state.treeJson)) {
       if (tokenJson.isGroup === false) {
-        idLastToken = (parseInt(tokenJson.ID) + 1).toString();
+        idLastToken = (parseInt(tokenJson.ID, 10) + 1).toString();
       }
     }
     newToken.ID = idLastToken;
@@ -172,10 +172,12 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public getSentenceText(): string {
     let sentence = "";
     for (const tokenId in this.state.treeJson) {
-      const token = this.state.treeJson[tokenId];
-      const form = token.FORM;
-      const space = token.MISC.SpaceAfter === "No" ? "" : " ";
-      sentence = sentence + form + space;
+      if (this.state.treeJson[tokenId]) {
+        const token = this.state.treeJson[tokenId];
+        const form = token.FORM;
+        const space = token.MISC.SpaceAfter === "No" ? "" : " ";
+        sentence = sentence + form + space;
+      }
     }
     return sentence;
   }
@@ -183,8 +185,10 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public getUndescoredText(): string {
     const tokensForms = [];
     for (const tokenId in this.state.treeJson) {
-      const token = this.state.treeJson[tokenId];
-      tokensForms.push(token.FORM);
+      if (this.state.treeJson[tokenId]) {
+        const token = this.state.treeJson[tokenId];
+        tokensForms.push(token.FORM);
+      }
     }
     const underscoredText = tokensForms.join("_");
     return underscoredText;
@@ -193,17 +197,19 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public getAllFeaturesSet(): string[] {
     const allFeaturesSet: string[] = ["FORM", "LEMMA", "UPOS", "XPOS"];
     for (const tokenId in this.state.treeJson) {
-      const features: FeatureJson = this.state.treeJson[tokenId].FEATS;
-      const miscs: FeatureJson = this.state.treeJson[tokenId].MISC;
-      for (const feat in features) {
-        if (!allFeaturesSet.includes(`FEATS.${feat}`)) {
-          allFeaturesSet.push(`FEATS.${feat}`);
+      if (this.state.treeJson[tokenId]) {
+        const features: FeatureJson = this.state.treeJson[tokenId].FEATS;
+        const miscs: FeatureJson = this.state.treeJson[tokenId].MISC;
+        for (const feat in features) {
+          if (!allFeaturesSet.includes(`FEATS.${feat}`)) {
+            allFeaturesSet.push(`FEATS.${feat}`);
+          }
         }
-      }
 
-      for (const misc in miscs) {
-        if (!allFeaturesSet.includes(`MISC.${misc}`)) {
-          allFeaturesSet.push(`MISC.${misc}`);
+        for (const misc in miscs) {
+          if (!allFeaturesSet.includes(`MISC.${misc}`)) {
+            allFeaturesSet.push(`MISC.${misc}`);
+          }
         }
       }
     }
