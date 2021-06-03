@@ -21,15 +21,21 @@ export declare class SentenceSVG extends EventDispatcher {
     totalWidth: number;
     totalHeight: number;
     levelsArray: number[];
+    orderOfTokens: string[];
+    oldIdToNewId: {
+        [key: number]: number;
+    };
     options: SentenceSVGOptions;
     constructor(svgWrapper: SVGElement, reactiveSentence: ReactiveSentence, sentenceSVGOptions: SentenceSVGOptions);
     drawTree(): void;
     update(reactiveSentence: ReactiveSentence): void;
     plugDiffTree(teacherReactiveSentence: ReactiveSentence): void;
+    populateOrderOfTokens(): void;
     populateTokenSVGs(): void;
     updateToken(tokenJson: TokenJson): void;
+    getHeadsIdsArray(): number[];
     populateLevels(): void;
-    getLevel(headsIdArray: number[], index: number, start: number, end: number): number;
+    getLevel(headsIdsArray: number[], index: number, start: number, end: number): number;
     drawRelations(): void;
     adaptSvgCanvas(): void;
     showhighlights(): void;

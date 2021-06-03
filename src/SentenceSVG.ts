@@ -130,26 +130,29 @@ export class SentenceSVG extends EventDispatcher {
     let stack = []
     let orderOfTokens: string[] = []
     for (const tokenIndex in this.treeJson) {
-      const tokenJson = this.treeJson[tokenIndex]
-      if (tokenJson.isGroup) {
-        // skip if it's a group token
-        continue
-      }
-      if (this.metaJson.rtl === "yes") {
-        // the full sentence is in RTL mode
-        stack.push(tokenIndex)
-        if (tokenJson.MISC.rtl !== "no") {
-          // the token is not in RTL mode (his following token will be at his right)
-          orderOfTokens = stack.concat(orderOfTokens)
-          stack = []
+      if (this.treeJson[tokenIndex]) {
+
+        const tokenJson = this.treeJson[tokenIndex]
+        if (tokenJson.isGroup) {
+          // skip if it's a group token
+          continue
         }
-      } else {
-        // the full sentence is in conventional mode
-        stack.unshift(tokenIndex)
-        if (tokenJson.MISC.rtl !== "yes") {
-          // the token is in RTL mode (his following token will be at his left)
-          orderOfTokens = orderOfTokens.concat(JSON.parse(JSON.stringify(stack)))
-          stack = []
+        if (this.metaJson.rtl === "yes") {
+          // the full sentence is in RTL mode
+          stack.push(tokenIndex)
+          if (tokenJson.MISC.rtl !== "no") {
+            // the token is not in RTL mode (his following token will be at his right)
+            orderOfTokens = stack.concat(orderOfTokens)
+            stack = []
+          }
+        } else {
+          // the full sentence is in conventional mode
+          stack.unshift(tokenIndex)
+          if (tokenJson.MISC.rtl !== "yes") {
+            // the token is in RTL mode (his following token will be at his left)
+            orderOfTokens = orderOfTokens.concat(JSON.parse(JSON.stringify(stack)))
+            stack = []
+          }
         }
       }
     }
@@ -168,24 +171,24 @@ export class SentenceSVG extends EventDispatcher {
 
     // TODO RTL : add iterating through new  getOrderOfTokens()
     for (const tokenJsonIndex of this.orderOfTokens) {
-        const tokenJson = this.treeJson[tokenJsonIndex];
-        if (tokenJson.isGroup === true) {
-          continue;
-        }
-        const tokenSvgIndex = parseInt(tokenJson.ID, 10);
-
-        const tokenSVG = new TokenSVG(tokenJson, this);
-        this.tokenSVGs[tokenSvgIndex] = tokenSVG;
-        tokenSVG.createSnap(
-          this.snapSentence,
-          this.options.shownFeatures,
-          runningX,
-          offsetY
-        );
-      tokenSVG.ylevel = this.levelsArray[this.oldIdToNewId[tokenSvgIndex]];
-        runningX += tokenSVG.width;
+      const tokenJson = this.treeJson[tokenJsonIndex];
+      if (tokenJson.isGroup === true) {
+        continue;
       }
+      const tokenSvgIndex = parseInt(tokenJson.ID, 10);
+
+      const tokenSVG = new TokenSVG(tokenJson, this);
+      this.tokenSVGs[tokenSvgIndex] = tokenSVG;
+      tokenSVG.createSnap(
+        this.snapSentence,
+        this.options.shownFeatures,
+        runningX,
+        offsetY
+      );
+      tokenSVG.ylevel = this.levelsArray[this.oldIdToNewId[tokenSvgIndex]];
+      runningX += tokenSVG.width;
     }
+  }
 
   updateToken(tokenJson: TokenJson): void {
     this.treeJson[tokenJson.ID] = tokenJson;
@@ -195,7 +198,7 @@ export class SentenceSVG extends EventDispatcher {
     this.oldIdToNewId = {}
     let i = 1
     for (const tokenJsonIndex of this.orderOfTokens) {
-      this.oldIdToNewId[parseInt(tokenJsonIndex)] = i
+      this.oldIdToNewId[parseInt(tokenJsonIndex, 10)] = i
       i = i + 1
     }
     const headsIdsArray = []
