@@ -1,3 +1,3 @@
 export const annotationSchema = {
-  UPOS: ["VERB", "DET", "CONJ"]
+  UPOS: ['VERB', 'DET', 'CONJ'],
 };

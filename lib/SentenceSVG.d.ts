@@ -1,7 +1,7 @@
-import Snap from "snapsvg-cjs";
-import { TreeJson, TokenJson, MetaJson } from "conllup/lib/conll";
-import { EventDispatcher } from "./EventDispatcher";
-import { ReactiveSentence } from "./ReactiveSentence";
+import Snap from 'snapsvg-cjs';
+import { TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
+import { EventDispatcher } from './EventDispatcher';
+import { ReactiveSentence } from './ReactiveSentence';
 export interface SentenceSVGOptions {
     shownFeatures: string[];
     interactive: boolean;

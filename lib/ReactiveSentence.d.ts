@@ -1,6 +1,6 @@
-import { SentenceJson, TreeJson, TokenJson, MetaJson } from "conllup/lib/conll";
-import { IOriginator, IMemento, ICaretaker } from "./MementoPattern";
-import { ISubject, IObserver } from "./ObserverPattern";
+import { SentenceJson, TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
+import { IOriginator, IMemento, ICaretaker } from './MementoPattern';
+import { ISubject, IObserver } from './ObserverPattern';
 /**
  * The Concrete Memento contains the infrastructure for storing the Originator's
  * state.

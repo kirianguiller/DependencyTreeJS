@@ -1,22 +1,11 @@
-import conllup from "conllup";
-const {
-  emptySentenceJson,
-  sentenceConllToJson,
-  sentenceJsonToConll,
-  emptyTokenJson,
-  constructTextFromTreeJson,
-} = conllup;
+import conllup from 'conllup';
+const { emptySentenceJson, sentenceConllToJson, sentenceJsonToConll, emptyTokenJson, constructTextFromTreeJson } =
+  conllup;
 
-import {
-  SentenceJson,
-  TreeJson,
-  TokenJson,
-  FeatureJson,
-  MetaJson
-} from "conllup/lib/conll";
+import { SentenceJson, TreeJson, TokenJson, FeatureJson, MetaJson } from 'conllup/lib/conll';
 
-import { IOriginator, IMemento, ICaretaker } from "./MementoPattern";
-import { ISubject, IObserver } from "./ObserverPattern";
+import { IOriginator, IMemento, ICaretaker } from './MementoPattern';
+import { ISubject, IObserver } from './ObserverPattern';
 
 /**
  * The Concrete Memento contains the infrastructure for storing the Originator's
@@ -29,10 +18,7 @@ export class SentenceMemento implements IMemento {
 
   constructor(state: string) {
     this.state = state;
-    this.date = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
+    this.date = new Date().toISOString().slice(0, 19).replace('T', ' ');
   }
 
   /**
@@ -80,28 +66,30 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public attach(observer: IObserver): void {
     const isExist = this.observers.includes(observer);
     if (isExist) {
-      return console.log("Subject: Observer has been attached already.");
+      return console.log('Subject: Observer has been attached already.');
     }
 
-    console.log("Subject: Attached an observer.");
+    console.log('Subject: Attached an observer.');
     this.observers.push(observer);
   }
 
   public detach(observer: IObserver): void {
     const observerIndex = this.observers.indexOf(observer);
     if (observerIndex === -1) {
-      return console.log("Subject: Nonexistent observer.");
+      return console.log('Subject: Nonexistent observer.');
     }
 
     this.observers.splice(observerIndex, 1);
-    console.log("Subject: Detached an observer.");
+    console.log('Subject: Detached an observer.');
   }
 
   /**
    * Trigger an update in each subscriber.
    */
   public notify(): void {
-    console.log("Subject: The reactiveSentence object changed. Notifying all of the observers by running their 'update()' methods.")
+    console.log(
+      "Subject: The reactiveSentence object changed. Notifying all of the observers by running their 'update()' methods.",
+    );
     for (const observer of this.observers) {
       observer.update(this);
     }
@@ -151,14 +139,14 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
   public addEmptyToken(): void {
     const newToken = emptyTokenJson();
-    let idLastToken = "1";
+    let idLastToken = '1';
     for (const tokenJson of Object.values(this.state.treeJson)) {
       if (tokenJson.isGroup === false) {
         idLastToken = (parseInt(tokenJson.ID, 10) + 1).toString();
       }
     }
     newToken.ID = idLastToken;
-    newToken.FORM = "new_token";
+    newToken.FORM = 'new_token';
     this.state.treeJson[newToken.ID] = newToken;
     this.state.treeJson = JSON.parse(JSON.stringify(this.state.treeJson));
     this.notify();
@@ -167,7 +155,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public exportConll() {
     return sentenceJsonToConll({
       treeJson: this.state.treeJson,
-      metaJson: this.state.metaJson
+      metaJson: this.state.metaJson,
     });
   }
 
@@ -183,12 +171,12 @@ export class ReactiveSentence implements IOriginator, ISubject {
         tokensForms.push(token.FORM);
       }
     }
-    const underscoredText = tokensForms.join("_");
+    const underscoredText = tokensForms.join('_');
     return underscoredText;
   }
 
   public getAllFeaturesSet(): string[] {
-    const allFeaturesSet: string[] = ["FORM", "LEMMA", "UPOS", "XPOS"];
+    const allFeaturesSet: string[] = ['FORM', 'LEMMA', 'UPOS', 'XPOS'];
     for (const tokenId in this.state.treeJson) {
       if (this.state.treeJson[tokenId]) {
         const features: FeatureJson = this.state.treeJson[tokenId].FEATS;
@@ -218,7 +206,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
     const sentenceJsonToExport: SentenceJson = {
       treeJson: this.state.treeJson,
-      metaJson: newMetaJson
+      metaJson: newMetaJson,
     };
 
     return sentenceJsonToConll(sentenceJsonToExport);
@@ -250,7 +238,7 @@ export class SentenceCaretaker implements ICaretaker {
 
   public undo(): void {
     if (!this.canUndo()) {
-      console.log("caretaker: the caretaker mementos was empty");
+      console.log('caretaker: the caretaker mementos was empty');
       return;
     }
     this.currentStateIndex--;
@@ -262,9 +250,7 @@ export class SentenceCaretaker implements ICaretaker {
 
   public redo(): void {
     if (!this.canRedo()) {
-      console.log(
-        "caretaker: can't redo, you are already at the end of your mementos"
-      );
+      console.log("caretaker: can't redo, you are already at the end of your mementos");
       return;
     }
     this.currentStateIndex++;
