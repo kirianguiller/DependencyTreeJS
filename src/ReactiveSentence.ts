@@ -100,6 +100,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
    * Trigger an update in each subscriber.
    */
   public notify(): void {
+    console.log("Subject: The reactiveSentence object changed. Notifying all of the observers by running their 'update()' methods.")
     for (const observer of this.observers) {
       observer.update(this);
     }
@@ -172,7 +173,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public getSentenceText(): string {
     let sentence = "";
     for (const tokenId in this.state.treeJson) {
-      if (this.state.treeJson[tokenId]) {
+      if ((this.state.treeJson[tokenId]) && this.state.treeJson[tokenId].isGroup === false) {
         const token = this.state.treeJson[tokenId];
         const form = token.FORM;
         const space = token.MISC.SpaceAfter === "No" ? "" : " ";
