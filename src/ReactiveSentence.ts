@@ -3,7 +3,8 @@ const {
   emptySentenceJson,
   sentenceConllToJson,
   sentenceJsonToConll,
-  emptyTokenJson
+  emptyTokenJson,
+  constructTextFromTreeJson,
 } = conllup;
 
 import {
@@ -171,16 +172,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
   }
 
   public getSentenceText(): string {
-    let sentence = "";
-    for (const tokenId in this.state.treeJson) {
-      if ((this.state.treeJson[tokenId]) && this.state.treeJson[tokenId].isGroup === false) {
-        const token = this.state.treeJson[tokenId];
-        const form = token.FORM;
-        const space = token.MISC.SpaceAfter === "No" ? "" : " ";
-        sentence = sentence + form + space;
-      }
-    }
-    return sentence;
+    return constructTextFromTreeJson(this.state.treeJson);
   }
 
   public getUndescoredText(): string {
