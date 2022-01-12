@@ -267,6 +267,6 @@ export class SentenceCaretaker implements ICaretaker {
   }
 
   public get currentStateIndex() {
-    return this._currentStateIndex
+    return this._currentStateIndex;
   }
 }

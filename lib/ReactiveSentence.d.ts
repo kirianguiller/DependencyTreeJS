@@ -71,7 +71,7 @@ export declare class ReactiveSentence implements IOriginator, ISubject {
 }
 export declare class SentenceCaretaker implements ICaretaker {
     private mementos;
-    private currentStateIndex;
+    private _currentStateIndex;
     private originator;
     constructor(originator: IOriginator);
     backup(): void;
@@ -80,4 +80,5 @@ export declare class SentenceCaretaker implements ICaretaker {
     undo(): void;
     redo(): void;
     showHistory(): void;
+    get currentStateIndex(): number;
 }
