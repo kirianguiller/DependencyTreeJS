@@ -215,7 +215,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
 export class SentenceCaretaker implements ICaretaker {
   private mementos: IMemento[] = [];
-  private currentStateIndex = -1;
+  private _currentStateIndex = -1;
   private originator: IOriginator;
 
   constructor(originator: IOriginator) {
@@ -223,17 +223,17 @@ export class SentenceCaretaker implements ICaretaker {
   }
 
   public backup(): void {
-    this.mementos = this.mementos.slice(0, this.currentStateIndex + 1);
+    this.mementos = this.mementos.slice(0, this._currentStateIndex + 1);
     this.mementos.push(this.originator.save());
-    this.currentStateIndex++;
+    this._currentStateIndex++;
   }
 
   public canUndo(): boolean {
-    return this.currentStateIndex !== 0;
+    return this._currentStateIndex !== 0;
   }
 
   public canRedo(): boolean {
-    return this.currentStateIndex + 1 !== this.mementos.length;
+    return this._currentStateIndex + 1 !== this.mementos.length;
   }
 
   public undo(): void {
@@ -241,8 +241,8 @@ export class SentenceCaretaker implements ICaretaker {
       console.log('caretaker: the caretaker mementos was empty');
       return;
     }
-    this.currentStateIndex--;
-    const memento = this.mementos[this.currentStateIndex];
+    this._currentStateIndex--;
+    const memento = this.mementos[this._currentStateIndex];
     if (memento) {
       this.originator.restore(memento);
     }
@@ -253,8 +253,8 @@ export class SentenceCaretaker implements ICaretaker {
       console.log("caretaker: can't redo, you are already at the end of your mementos");
       return;
     }
-    this.currentStateIndex++;
-    const memento = this.mementos[this.currentStateIndex];
+    this._currentStateIndex++;
+    const memento = this.mementos[this._currentStateIndex];
     if (memento) {
       this.originator.restore(memento);
     }
@@ -264,5 +264,9 @@ export class SentenceCaretaker implements ICaretaker {
     for (const memento of this.mementos) {
       console.log(memento.getName(), memento.getState());
     }
+  }
+
+  public get currentStateIndex() {
+    return this._currentStateIndex
   }
 }
