@@ -29,11 +29,13 @@ export interface SentenceSVGOptions {
   shownFeatures: string[];
   // teacherReactiveSentence: ReactiveSentence;
   interactive: boolean;
+  matches: string[];
 }
 
 export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
   shownFeatures: [],
   interactive: false,
+  matches: [],
 });
 
 // export interface SentenceSVG extends SentenceSVGOptions {}
@@ -91,6 +93,10 @@ export class SentenceSVG extends EventDispatcher {
     this.drawRelations();
     this.adaptSvgCanvas();
     this.showhighlights();
+
+    if (this.options.matches.length > 0) {
+      this.showmatches();
+    }
 
     if (this.options.interactive) {
       this.snapSentence.addClass('interactive');
@@ -295,6 +301,14 @@ export class SentenceSVG extends EventDispatcher {
   showhighlights() {
     for (const tokenSVG of Object.values(this.tokenSVGs)) {
       tokenSVG.showhighlight();
+    }
+  }
+
+  showmatches() {
+    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+      if (this.options.matches.includes(tokenSVG.tokenJson.ID.toString())) {
+        tokenSVG.showmatch();
+      }
     }
   }
 
@@ -518,6 +532,10 @@ class TokenSVG {
     if (this.tokenJson.MISC.highlight) {
       this.snapElements['FORM'].node.style.fill = this.tokenJson.MISC.highlight;
     }
+  }
+
+  showmatch(): void {
+    this.snapElements['FORM'].node.style.fill = 'red';
   }
 
   attachEvent(): void {
