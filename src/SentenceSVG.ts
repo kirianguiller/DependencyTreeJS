@@ -30,12 +30,24 @@ export interface SentenceSVGOptions {
   // teacherReactiveSentence: ReactiveSentence;
   interactive: boolean;
   matches: string[];
+  packages: {
+    modified_edges: {
+      src: string;
+      edge: string;
+      tar: string;
+    }[];
+    modified_nodes: {
+      id: string;
+      features: string[];
+    }[];
+  } | null;
 }
 
 export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
   shownFeatures: [],
   interactive: false,
   matches: [],
+  packages: null,
 });
 
 // export interface SentenceSVG extends SentenceSVGOptions {}
@@ -70,7 +82,6 @@ export class SentenceSVG extends EventDispatcher {
     this.snapSentence = Snap(svgWrapper);
     this.treeJson = reactiveSentence.state.treeJson;
     this.metaJson = reactiveSentence.state.metaJson;
-
     Object.assign(this.options, sentenceSVGOptions);
 
     reactiveSentence.attach(this);
@@ -96,6 +107,10 @@ export class SentenceSVG extends EventDispatcher {
 
     if (this.options.matches.length > 0) {
       this.showmatches();
+    }
+
+    if (this.options.packages !== null) {
+      this.showpackages();
     }
 
     if (this.options.interactive) {
@@ -312,6 +327,29 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
+  showpackages() {
+    if (this.options.packages !== null) {
+      const modifiedNodesId = this.options.packages.modified_nodes.map((modifiedNode) => modifiedNode.id);
+      for (const tokenSVG of Object.values(this.tokenSVGs)) {
+        if (modifiedNodesId.includes(tokenSVG.tokenJson.ID.toString())) {
+          const modifiedNode =
+            this.options.packages.modified_nodes.filter((mNode) => mNode.id === tokenSVG.tokenJson.ID.toString())[0] ||
+            null;
+          if (modifiedNode !== null) {
+            tokenSVG.showmodifiednode(modifiedNode.features);
+          }
+        }
+      }
+
+      const modifiedEdgesSrc = this.options.packages.modified_edges.map((modifiedEdge) => modifiedEdge.src);
+      for (const tokenSVG of Object.values(this.tokenSVGs)) {
+        if (modifiedEdgesSrc.includes(tokenSVG.tokenJson.ID.toString())) {
+          tokenSVG.showmodifiededge();
+        }
+      }
+    }
+  }
+
   attachEvents() {
     for (const tokenSVG of Object.values(this.tokenSVGs)) {
       tokenSVG.attachEvent();
@@ -460,7 +498,6 @@ class TokenSVG {
       snapFeature.addClass(feature.split('.')[0]);
 
       this.snapElements[feature] = snapFeature;
-
       // handle width properties
       const featureWidth = snapFeature.getBBox().w;
       maxFeatureWidth = Math.max(maxFeatureWidth, featureWidth); // keep biggest node width
@@ -536,6 +573,34 @@ class TokenSVG {
 
   showmatch(): void {
     this.snapElements['FORM'].node.style.fill = 'red';
+  }
+
+  showmodifiednode(features: string[]): void {
+    if (features.includes('upos')) {
+      this.snapElements['UPOS'].node.style.fill = 'red';
+    }
+    if (features.includes('form')) {
+      this.snapElements['FORM'].node.style.fill = 'red';
+    }
+    if (features.includes('lemma')) {
+      this.snapElements['LEMMA'].node.style.fill = 'red';
+    }
+    if (features.includes('deprel')) {
+      this.snapElements['DEPREL'].node.style.fill = 'red';
+    }
+    for (const feature of features) {
+      for (const miscOrFeat of ['FEATS', 'MISC']) {
+        if (this.snapElements[`${miscOrFeat}.${feature}`] !== undefined) {
+          this.snapElements[`${miscOrFeat}.${feature}`].node.style.fill = 'red';
+          break;
+        }
+      }
+    }
+  }
+
+  showmodifiededge(): void {
+    this.snapElements['arc'].node.style.stroke = 'red';
+    this.snapElements['arrowhead'].node.style.stroke = 'red';
   }
 
   attachEvent(): void {

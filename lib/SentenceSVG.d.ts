@@ -6,6 +6,17 @@ export interface SentenceSVGOptions {
     shownFeatures: string[];
     interactive: boolean;
     matches: string[];
+    packages: {
+        modified_edges: {
+            src: string;
+            edge: string;
+            tar: string;
+        }[];
+        modified_nodes: {
+            id: string;
+            features: string[];
+        }[];
+    } | null;
 }
 export declare const defaultSentenceSVGOptions: () => SentenceSVGOptions;
 export declare class SentenceSVG extends EventDispatcher {
@@ -41,6 +52,7 @@ export declare class SentenceSVG extends EventDispatcher {
     adaptSvgCanvas(): void;
     showhighlights(): void;
     showmatches(): void;
+    showpackages(): void;
     attachEvents(): void;
     attachDraggers(): void;
     attachHovers(): void;
@@ -83,6 +95,8 @@ declare class TokenSVG {
     drawRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number): void;
     showhighlight(): void;
     showmatch(): void;
+    showmodifiednode(features: string[]): void;
+    showmodifiededge(): void;
     attachEvent(): void;
     attachDragger(): void;
     attachHover(): void;
