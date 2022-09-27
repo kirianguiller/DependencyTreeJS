@@ -1,6 +1,6 @@
 {
   "name": "dependencytreejs",
-  "version": "1.0.8",
+  "version": "2.0.0",
   "description": "Core data structure for dependency tree in the browser",
   "main": "index.js",
   "scripts": {
