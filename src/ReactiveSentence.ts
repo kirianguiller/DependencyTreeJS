@@ -123,7 +123,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
   public updateToken(tokenJson: TokenJson): void {
     tokenJson.ID = tokenJson.ID.toString();
-    Object.assign(this.state.treeJson[tokenJson.ID], tokenJson);
+    Object.assign(this.state.treeJson.nodesJson[tokenJson.ID], tokenJson);
     this.notify();
   }
 
@@ -147,7 +147,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
     }
     newToken.ID = idLastToken;
     newToken.FORM = 'new_token';
-    this.state.treeJson[newToken.ID] = newToken;
+    this.state.treeJson.nodesJson[newToken.ID] = newToken;
     this.state.treeJson = JSON.parse(JSON.stringify(this.state.treeJson));
     this.notify();
   }
@@ -165,9 +165,9 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
   public getUndescoredText(): string {
     const tokensForms = [];
-    for (const tokenId in this.state.treeJson) {
-      if (this.state.treeJson[tokenId]) {
-        const token = this.state.treeJson[tokenId];
+    for (const tokenId in this.state.treeJson.nodesJson) {
+      if (this.state.treeJson.nodesJson[tokenId]) {
+        const token = this.state.treeJson.nodesJson[tokenId];
         tokensForms.push(token.FORM);
       }
     }
@@ -177,10 +177,10 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
   public getAllFeaturesSet(): string[] {
     const allFeaturesSet: string[] = ['FORM', 'LEMMA', 'UPOS', 'XPOS'];
-    for (const tokenId in this.state.treeJson) {
-      if (this.state.treeJson[tokenId]) {
-        const features: FeatureJson = this.state.treeJson[tokenId].FEATS;
-        const miscs: FeatureJson = this.state.treeJson[tokenId].MISC;
+    for (const tokenId in this.state.treeJson.nodesJson) {
+      if (this.state.treeJson.nodesJson[tokenId]) {
+        const features: FeatureJson = this.state.treeJson.nodesJson[tokenId].FEATS;
+        const miscs: FeatureJson = this.state.treeJson.nodesJson[tokenId].MISC;
         for (const feat in features) {
           if (!allFeaturesSet.includes(`FEATS.${feat}`)) {
             allFeaturesSet.push(`FEATS.${feat}`);
