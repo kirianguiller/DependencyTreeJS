@@ -1,7 +1,6 @@
 import Snap from 'snapsvg-cjs';
 
-import conllup from 'conllup';
-const { sentenceConllToJson, sentenceJsonToConll, emptyTreeJson } = conllup;
+import { sentenceConllToJson, sentenceJsonToConll, emptyTreeJson } from 'conllup/lib/conll';
 import { TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
 
 import { EventDispatcher } from './EventDispatcher';
@@ -148,7 +147,7 @@ export class SentenceSVG extends EventDispatcher {
   populateOrderOfTokens(): void {
     let stack = [];
     let orderOfTokens: string[] = [];
-    for (const tokenIndex in this.treeJson) {
+    for (const tokenIndex in this.treeJson.nodesJson) {
       if (this.treeJson.nodesJson[tokenIndex]) {
         const tokenJson = this.treeJson.nodesJson[tokenIndex];
         if (this.metaJson.rtl === 'yes') {
@@ -360,7 +359,7 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   showDiffs(otherTreeJson: TreeJson) {
-    if (!(Object.keys(otherTreeJson).length === 0 && otherTreeJson.constructor === Object)) {
+    if (!(Object.keys(otherTreeJson.nodesJson).length === 0 && otherTreeJson.nodesJson.constructor === Object)) {
       for (const tokenIndex in this.tokenSVGs) {
         // for (const [tokenIndex, tokenSVG] of Object.entries(this.tokenSVGs)) {
         if (otherTreeJson.nodesJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
@@ -387,7 +386,7 @@ export class SentenceSVG extends EventDispatcher {
       UPOS: 0,
     };
 
-    for (const tokenIndex in teacherTreeJson) {
+    for (const tokenIndex in teacherTreeJson.nodesJson) {
       if (teacherTreeJson.nodesJson[tokenIndex]) {
         for (const tag in corrects) {
           if (teacherTreeJson.nodesJson[tokenIndex][tag] !== '_' && !Object.is(teacherTreeJson.nodesJson[tokenIndex][tag], NaN)) {

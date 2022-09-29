@@ -1,7 +1,4 @@
-import conllup from 'conllup';
-const { emptySentenceJson, sentenceConllToJson, sentenceJsonToConll, emptyTokenJson, constructTextFromTreeJson } =
-  conllup;
-
+import { emptySentenceJson, sentenceConllToJson, sentenceJsonToConll, emptyTokenJson, constructTextFromTreeJson } from 'conllup/lib/conll';
 import { SentenceJson, TreeJson, TokenJson, FeatureJson, MetaJson } from 'conllup/lib/conll';
 
 import { IOriginator, IMemento, ICaretaker } from './MementoPattern';
@@ -140,10 +137,8 @@ export class ReactiveSentence implements IOriginator, ISubject {
   public addEmptyToken(): void {
     const newToken = emptyTokenJson();
     let idLastToken = '1';
-    for (const tokenJson of Object.values(this.state.treeJson)) {
-      if (tokenJson.isGroup === false) {
-        idLastToken = (parseInt(tokenJson.ID, 10) + 1).toString();
-      }
+    for (const tokenJson of Object.values(this.state.treeJson.nodesJson)) {
+      idLastToken = (parseInt(tokenJson.ID, 10) + 1).toString();
     }
     newToken.ID = idLastToken;
     newToken.FORM = 'new_token';
