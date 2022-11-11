@@ -1,7 +1,6 @@
 import Snap from 'snapsvg-cjs';
 
-import conllup from 'conllup';
-const { sentenceConllToJson, sentenceJsonToConll } = conllup;
+import { sentenceConllToJson, sentenceJsonToConll, emptyTreeJson } from 'conllup/lib/conll';
 import { TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
 
 import { EventDispatcher } from './EventDispatcher';
@@ -57,7 +56,7 @@ export class SentenceSVG extends EventDispatcher {
   snapSentence: Snap.Paper;
   treeJson: TreeJson;
   metaJson: MetaJson;
-  teacherTreeJson: TreeJson = {};
+  teacherTreeJson: TreeJson = emptyTreeJson();
   shownFeatures: string[] = [];
   // matchnodes: Array<string>;
   // matchedges: string[];
@@ -148,13 +147,9 @@ export class SentenceSVG extends EventDispatcher {
   populateOrderOfTokens(): void {
     let stack = [];
     let orderOfTokens: string[] = [];
-    for (const tokenIndex in this.treeJson) {
-      if (this.treeJson[tokenIndex]) {
-        const tokenJson = this.treeJson[tokenIndex];
-        if (tokenJson.isGroup) {
-          // skip if it's a group token
-          continue;
-        }
+    for (const tokenIndex in this.treeJson.nodesJson) {
+      if (this.treeJson.nodesJson[tokenIndex]) {
+        const tokenJson = this.treeJson.nodesJson[tokenIndex];
         if (this.metaJson.rtl === 'yes') {
           // the full sentence is in RTL mode
           stack.push(tokenIndex);
@@ -188,10 +183,7 @@ export class SentenceSVG extends EventDispatcher {
 
     // TODO RTL : add iterating through new  getOrderOfTokens()
     for (const tokenJsonIndex of this.orderOfTokens) {
-      const tokenJson = this.treeJson[tokenJsonIndex];
-      if (tokenJson.isGroup === true) {
-        continue;
-      }
+      const tokenJson = this.treeJson.nodesJson[tokenJsonIndex];
       const tokenSvgIndex = parseInt(tokenJson.ID, 10);
 
       const tokenSVG = new TokenSVG(tokenJson, this);
@@ -203,7 +195,7 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   updateToken(tokenJson: TokenJson): void {
-    this.treeJson[tokenJson.ID] = tokenJson;
+    this.treeJson.nodesJson[tokenJson.ID] = tokenJson;
   }
 
   getHeadsIdsArray(): number[] {
@@ -215,13 +207,11 @@ export class SentenceSVG extends EventDispatcher {
     }
     const headsIdsArray = [];
     for (const tokenJsonIndex of this.orderOfTokens) {
-      const tokenJson = this.treeJson[tokenJsonIndex];
-      if (!tokenJson.isGroup) {
-        if (tokenJson.HEAD >= 1) {
-          headsIdsArray.push(this.oldIdToNewId[tokenJson.HEAD]);
-        } else {
-          headsIdsArray.push(tokenJson.HEAD);
-        }
+      const tokenJson = this.treeJson.nodesJson[tokenJsonIndex];
+      if (tokenJson.HEAD >= 1) {
+        headsIdsArray.push(this.oldIdToNewId[tokenJson.HEAD]);
+      } else {
+        headsIdsArray.push(tokenJson.HEAD);
       }
     }
     return headsIdsArray;
@@ -369,13 +359,13 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   showDiffs(otherTreeJson: TreeJson) {
-    if (!(Object.keys(otherTreeJson).length === 0 && otherTreeJson.constructor === Object)) {
+    if (!(Object.keys(otherTreeJson.nodesJson).length === 0 && otherTreeJson.nodesJson.constructor === Object)) {
       for (const tokenIndex in this.tokenSVGs) {
         // for (const [tokenIndex, tokenSVG] of Object.entries(this.tokenSVGs)) {
-        if (otherTreeJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
+        if (otherTreeJson.nodesJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
           console.log(`Error, token id ${tokenIndex} doesn't match`);
         } else {
-          this.tokenSVGs[tokenIndex].showDiff(otherTreeJson[tokenIndex]);
+          this.tokenSVGs[tokenIndex].showDiff(otherTreeJson.nodesJson[tokenIndex]);
         }
       }
     }
@@ -396,11 +386,16 @@ export class SentenceSVG extends EventDispatcher {
       UPOS: 0,
     };
 
-    for (const tokenIndex in teacherTreeJson) {
-      if (teacherTreeJson[tokenIndex]) {
+    for (const tokenIndex in teacherTreeJson.nodesJson) {
+      if (teacherTreeJson.nodesJson[tokenIndex]) {
         for (const tag in corrects) {
-          if (teacherTreeJson[tokenIndex][tag] !== '_' && !Object.is(teacherTreeJson[tokenIndex][tag], NaN)) {
-            corrects[tag] += +(teacherTreeJson[tokenIndex][tag] === currentTreeJson[tokenIndex][tag]);
+          if (
+            teacherTreeJson.nodesJson[tokenIndex][tag] !== '_' &&
+            !Object.is(teacherTreeJson.nodesJson[tokenIndex][tag], NaN)
+          ) {
+            corrects[tag] += +(
+              teacherTreeJson.nodesJson[tokenIndex][tag] === currentTreeJson.nodesJson[tokenIndex][tag]
+            );
             totals[tag]++;
           }
         }
