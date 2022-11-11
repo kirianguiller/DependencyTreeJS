@@ -1,4 +1,10 @@
-import { emptySentenceJson, sentenceConllToJson, sentenceJsonToConll, emptyTokenJson, constructTextFromTreeJson } from 'conllup/lib/conll';
+import {
+  emptySentenceJson,
+  sentenceConllToJson,
+  sentenceJsonToConll,
+  emptyTokenJson,
+  constructTextFromTreeJson,
+} from 'conllup/lib/conll';
 import { SentenceJson, TreeJson, TokenJson, FeatureJson, MetaJson } from 'conllup/lib/conll';
 
 import { IOriginator, IMemento, ICaretaker } from './MementoPattern';

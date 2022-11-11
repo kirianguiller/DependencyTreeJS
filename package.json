@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@types/snapsvg": "^0.5.0",
-    "conllup": "kirianguiller/conllup-js#2.0_dev_node",
+    "conllup": "^2.0.1",
     "snapsvg": "^0.5.1",
     "snapsvg-cjs": "0.0.6"
   }

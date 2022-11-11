@@ -389,8 +389,13 @@ export class SentenceSVG extends EventDispatcher {
     for (const tokenIndex in teacherTreeJson.nodesJson) {
       if (teacherTreeJson.nodesJson[tokenIndex]) {
         for (const tag in corrects) {
-          if (teacherTreeJson.nodesJson[tokenIndex][tag] !== '_' && !Object.is(teacherTreeJson.nodesJson[tokenIndex][tag], NaN)) {
-            corrects[tag] += +(teacherTreeJson.nodesJson[tokenIndex][tag] === currentTreeJson.nodesJson[tokenIndex][tag]);
+          if (
+            teacherTreeJson.nodesJson[tokenIndex][tag] !== '_' &&
+            !Object.is(teacherTreeJson.nodesJson[tokenIndex][tag], NaN)
+          ) {
+            corrects[tag] += +(
+              teacherTreeJson.nodesJson[tokenIndex][tag] === currentTreeJson.nodesJson[tokenIndex][tag]
+            );
             totals[tag]++;
           }
         }
