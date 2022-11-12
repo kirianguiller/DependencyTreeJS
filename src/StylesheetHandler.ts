@@ -1,278 +1,136 @@
 const sharedStyleSheet = `
-.interactive > .FORM,
-.interactive > .LEMMA,
-.interactive > .UPOS,
-.interactive > .DEPREL {
-  cursor: pointer;
-}
-
-.FORM {
-  --wordDistance: 55;
-  text-align: center;
-  position: relative;
-  z-index: 99;
-}
-
-.LEMMA {
-  font: 15px DejaVu Sans;
-  font-family: sans-serif;
-  text-align: center;
-  font-style: italic;
-  --wordDistance: 22;
-}
-
-.MISC-Gloss {
-  font: 15px DejaVu Sans;
-  font-family: sans-serif;
-  text-align: center;
-  font-style: italic;
-  --wordDistance: 11;
-}
-
-.UPOS {
-  font: 11px DejaVu Sans;
-  text-align: center;
-  --wordDistance: 22;
-}
-
-.UPOSselected {
-  font: 11px DejaVu Sans;
-  fill: #dd137bff;
-  font-weight: bold;
-  text-align: center;
-}
-
-.DEPREL {
-  font: 12px Arial;
-  font-style: oblique;
-  font-family: sans-serif;
-  position: relative;
-  z-index: 99;
-  --funcCurveDist: 3; /* distance between the function name and the curves highest point */
-}
-
-.glossy {
-  font: 15px DejaVu Sans;
-  font-family: sans-serif;
-  text-align: center;
-  font-style: italic;
-  --wordDistance: 11;
-}
-
-.xdeprel {
-  fill: #21ba45;
-  z-index: 99;
-}
-
-.xdep {
-  stroke: #21ba45;
-  fill: none;
-}
-
-.DEPRELselected {
-  z-index: 99;
-  /* font-weight: bold; */
-}
-
-.arrowhead {
-  fill: white;
-  stroke: black;
-  stroke-width: 0.8;
-}
-
-.curve {
-  stroke-width: 1;
-  fill: none;
-  position: relative;
-  z-index: 0;
-  --startOffset: 8;
-  --tokDepDist: 15; /* distance between tokens and depdendency relation */
-  --depMinHeight: 15; /* minimum height for dependency */
-  --wordDistanceFactor: -1; /* distant words get higher curves. this factor fixes how much higher */
-}
-
-.dragcurve {
-  stroke-width: 1.5;
-  fill: none;
-}
-.draggov {
-  fill: #dd137bff;
-  text-align: center;
-}
-
-.conll {
-  display: none; /*toggles to inline*/
-  unicode-bidi: embed;
-  font-family: monospace;
-  white-space: pre;
-  margin-bottom: 0.6em;
-  border-bottom: 1px solid #aaa;
-  padding: 0.5em 0 0.17em 0;
-  tab-size: 12;
-  background-color: #fff;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
-}
-
-.sentencebox {
-  margin-bottom: 0.6em;
-  border-bottom: 1px solid #aaa;
-  padding: 0.5em 0 0.17em 0;
-  margin-top: 1em;
-}
-
-.center {
-  text-align: center;
-}
-
-.svgbox {
-  overflow-x: auto;
-}
-
-.curve.diff,
-.arrowhead.diff {
-  stroke: red;
-  stroke-width: 1;
-  fill: none;
-  position: relative;
-}
-
-.UPOS.diff,
-.DEPREL.diff {
-  fill: red;
-}
-
-.FEATS, .MISC {
-  font-size: 10px;
-}
+  .interactive > .FORM,
+  .interactive > .LEMMA,
+  .interactive > .UPOS,
+  .interactive > .DEPREL {
+    cursor: pointer;
+  }
+  
+  .FORM {
+    font-size: 16px;
+    z-index: 99;
+  }
+  
+  .LEMMA {
+    font-size: 13px;
+    font-style: italic;
+  }
+  
+  .UPOS, .XPOS {
+    font: 11px DejaVu Sans;
+  }
+  
+  .XPOS {
+      font-style: italic;
+  }
+  
+  
+  .DEPREL {
+    font: 12px Arial;
+    font-family: sans-serif;
+    z-index: 99;
+  }
+  
+  .FEATS, .MISC {
+    font-size: 10px;
+  }
+  
+  .glossy {
+    font-style: italic;
+  }
+  
+  .arrowhead {
+    stroke-width: 0.8;
+  }
+  
+  .curve {
+    stroke-width: 1.1;
+    fill: none;
+    z-index: 0;
+  }
+  
+  .dragcurve {
+    stroke-width: 2;
+    fill: none;
+  }
     `;
 
-const lightStylesheet =
-  sharedStyleSheet +
-  `
-.FORM {
-  fill: black;
-}
+const lightStylesheet = sharedStyleSheet + `
+    .FORM, .LEMMA {
+      fill: black;
+    }
 
-.LEMMA {
-  fill: black;
-}
+    .UPOS, .DEPREL {
+      fill: #4a0984;;
+    }
 
-.MISC-Gloss {
-  fill: rgb(124, 96, 86);
-}
+    .FEATS, .MISC, .XPOS {
+      fill: #b352ac;
+    }
 
-.UPOS {
-  fill: rgb(80, 29, 125);
-}
+    .UPOS.diff,
+    .DEPREL.diff {
+      fill: red;
+    }
 
-.UPOSselected {
-  fill: #dd137bff;
-}
+    .arrowhead {
+      fill: white;
+    }
 
-.DEPREL {
-  fill: #501d7d;
-}
+    .arrowhead, .curve {
+      stroke: black;
+    }
 
-.glossy {
-  fill: coral;
-}
+    .arrowhead.diff, .curve.diff {
+      stroke: red;
+    }
 
-.xdeprel {
-  fill: #21ba45;
-}
+    .dragcurve, .dragarrowhead {
+      stroke: #ffb424;
+    }
 
-.xdep {
-  stroke: #21ba45;
-}
+    .glossy {
+      fill: #ffb424;
+    }
+ `;
 
-.DEPRELselected {
-  fill: #dd137b;
-}
+const darkStylesheet = sharedStyleSheet + `
+      .FORM, .LEMMA {
+      fill: #e6e2e2;
+    }
 
-.arrowhead {
-  fill: white;
-  stroke: black;
-}
+    .UPOS, .DEPREL {
+      fill: #ea6ff4;
+    }
 
-.curve {
-  stroke: black;
-}
+    .FEATS, .MISC, .XPOS {
+      fill: #a47da3;
+    }
 
-.dragcurve {
-  stroke: #dd137bff;
-}
-.draggov {
-  fill: #dd137bff;
-}
+    .FORM.diff, .UPOS.diff, .DEPREL.diff {
+      fill: #ff2020;
+    }
 
-.FEATS, .MISC {
-  fill: #6d346d;
-}
-    `;
+    .arrowhead {
+      fill: black;
+    }
 
-const darkStylesheet =
-  sharedStyleSheet +
-  `
-.FORM {
-  fill: white;
-}
+    .arrowhead, .curve {
+      stroke: #e6e2e2;
+    }
 
-.LEMMA {
-  fill: white;
-}
+    .arrowhead.diff, .curve.diff {
+      stroke: #ff2020;
+    }
 
-.MISC-Gloss {
-  fill: rgb(124, 96, 86);
-}
+    .dragarrowhead, .dragcurve {
+      stroke: #ffb424;
+    }
 
-.UPOS {
-  fill: rgb(80, 29, 125);
-}
-
-.UPOSselected {
-  fill: #dd137bff;
-}
-
-.DEPREL {
-  fill: #501d7d;
-}
-
-.glossy {
-  fill: coral;
-}
-
-.xdeprel {
-  fill: #21ba45;
-}
-
-.xdep {
-  stroke: #21ba45;
-}
-
-.DEPRELselected {
-  fill: #dd137b;
-}
-
-.arrowhead {
-  fill: black;
-  stroke: white;
-}
-
-.curve {
-  stroke: white;
-}
-
-.dragcurve {
-  stroke: #dd137bff;
-}
-.draggov {
-  fill: #dd137bff;
-}
-
-.FEATS, .MISC {
-  fill: #6d346d;
-}
-    `;
+    .glossy {
+      fill: #ffb424;
+    }
+        `;
 
 // Creates the style element
 function createStyleElement(id: string, content: string) {

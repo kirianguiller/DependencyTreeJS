@@ -31,9 +31,13 @@
     function setThemeModeWrapper(theme) {
         console.log(`Setting ${theme} mode for dependencytreejs`)
        if (theme === 'DARK') {
-           bodyHMLTelement.style.backgroundColor = 'black'
+           bodyHMLTelement.style.backgroundColor = '#1d1d1d';
+           // dependencytreejs.setStyleSheet(darkStylesheet, true);
+
        } else {
-            bodyHMLTelement.style.backgroundColor = 'white'
+           bodyHMLTelement.style.backgroundColor = 'white';
+           // dependencytreejs.setStyleSheet(lightStylesheet, true);
+
        }
        dependencytreejs.setThemeMode(current_theme, true);
     }
@@ -53,17 +57,19 @@
         switchThemeMode()
     })
 
-    switchThemeMode(current_theme)
+    setThemeModeWrapper(current_theme)
 
     // You have access to dependencytreejs module
     const conll = "# text = I am eating a pineapple\n" +
-        "1\tI\t_\tPRON\t_\t_\t2\tsuj\t_\t_\n" +
-        "2\tam\t_\tAUX\t_\t_\t0\troot\t_\t_\n" +
-        "3\teating\t_\tVERB\t_\t_\t2\taux\t_\thighlight=red\n" +
-        "4\ta\t_\tDET\t_\t_\t5\tdet\t_\t_\n" +
-        "5\tpineapple\t_\tNOUN\t_\t_\t3\tobj\t_\t_"
+        "1\tI\tI\tPRON\t_\t_\t2\tsuj\t_\t_\n" +
+        "2\tam\tam\tAUX\t_\t_\t0\troot\t_\tGloss=être\n" +
+        "3\teating\teat\tVERB\t_\t_\t2\taux\t_\thighlight=red\n" +
+        "4\ta\t_\tDET\ta\t_\t5\tdet\t_\t_\n" +
+        "5\tpineapple\tpineapple\tNOUN\t_\t_\t3\tobj\t_\t_"
     const reactiveSentence = new dependencytreejs.ReactiveSentence();
     reactiveSentence.fromSentenceConll(conll);
+
+
 
     const targetSVGElement = document.getElementById("svgWrapper")
 
@@ -75,6 +81,19 @@
       reactiveSentence,
       sentenceSVGOptions
     );
+
+
+    // plug diff tree for better vizualisation
+    const conllDiff = "# text = I am eating a pineapple\n" +
+        "1\tI\t_\tPRON\t_\t_\t1\tsuj\t_\t_\n" +
+        "2\tam\t_\tAUX\t_\t_\t0\troot\t_\tGloss=être\n" +
+        "3\teating\t_\tVERB\t_\t_\t2\taux\t_\thighlight=red\n" +
+        "4\ta\t_\tADV\t_\t_\t5\tdet\t_\t_\n" +
+        "5\tpineapple\t_\tNOUN\t_\t_\t3\tobj\t_\t_"
+    const reactiveSentenceDiff = new dependencytreejs.ReactiveSentence();
+    reactiveSentenceDiff.fromSentenceConll(conllDiff);
+
+    sentenceSVG.plugDiffTree(reactiveSentenceDiff)
 
     console.log("Here you should be able to see `sentenceSVG` object in the console", sentenceSVG)
 

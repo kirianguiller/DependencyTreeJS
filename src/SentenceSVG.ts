@@ -671,7 +671,7 @@ class TokenSVG {
     const path =
       'M' + xb + ',' + yb + ' C' + xb + ',' + (yb - 1) + ' ' + (xb + 1) + ',' + (yb - 1) + ' ' + (xb + 1) + ',' + yb;
     this.draggedCurve = this.snapSentence.path(path).addClass('dragcurve');
-    this.draggedArrowhead = this.snapSentence.path(getArrowheadPath(xb, yb)).addClass('dragcurve');
+    this.draggedArrowhead = this.snapSentence.path(getArrowheadPath(xb, yb)).addClass('dragarrowhead');
     this.dragRootCircle = undefined;
     // TODO add droppables
   }
@@ -722,7 +722,7 @@ class TokenSVG {
           treeNode: this,
           hovered: this.sentenceSVG.hovered,
           dragged: this.sentenceSVG.dragged,
-          isRoot: this.dragRootCircle ? true : false,
+          isRoot: !!this.dragRootCircle,
         },
       });
       e.preventDefault();
@@ -770,16 +770,13 @@ function getArrowheadPath(xFrom: number, yLow: number): string {
     ' ' +
     arrowheadsize +
     ',0';
-  const arrowPath = 'M' + startpoint + 'c' + lefttop + 'c' + righttop + 'z';
-  return arrowPath;
+  return 'M' + startpoint + 'c' + lefttop + 'c' + righttop + 'z';
 }
 
 function getArcPath(xFrom: number, xTo: number, yLow: number, yTop: number): string {
-  const path = 'M' + xFrom + ',' + yLow + ' C' + xFrom + ',' + yTop + ' ' + xTo + ',' + yTop + ' ' + xTo + ',' + yLow;
-  return path;
+  return 'M' + xFrom + ',' + yLow + ' C' + xFrom + ',' + yTop + ' ' + xTo + ',' + yTop + ' ' + xTo + ',' + yLow;
 }
 
 function getArcPathRoot(xFrom: number, yLow: number): string {
-  const path = 'M' + xFrom + ',' + yLow + ' L' + xFrom + ',' + '0 ';
-  return path;
+  return 'M' + xFrom + ',' + yLow + ' L' + xFrom + ',' + '0 ';
 }
