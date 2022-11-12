@@ -113,14 +113,17 @@ export class ReactiveSentence implements IOriginator, ISubject {
     this.notify();
   }
 
-  /**
-   * Usually, the subscription logic is only a fraction of what a Subject can
-   * really do. Subjects commonly hold some important business logic, that
-   * triggers a notification method whenever something important is about to
-   * happen (or after it).
-   */
   public fromSentenceConll(sentenceConll: string): void {
     this.state = sentenceConllToJson(sentenceConll);
+    this.notify();
+  }
+
+  /**
+   * Import sentence from object of SentenceJson interface
+   * @param sentenceJson
+   */
+  public fromSentenceJson(sentenceJson: SentenceJson): void {
+    this.state = JSON.parse(JSON.stringify(sentenceJson));
     this.notify();
   }
 

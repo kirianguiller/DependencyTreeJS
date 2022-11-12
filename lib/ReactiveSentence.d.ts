@@ -52,13 +52,12 @@ export declare class ReactiveSentence implements IOriginator, ISubject {
      * Restores the Originator's state from a memento object.
      */
     restore(memento: IMemento): void;
-    /**
-     * Usually, the subscription logic is only a fraction of what a Subject can
-     * really do. Subjects commonly hold some important business logic, that
-     * triggers a notification method whenever something important is about to
-     * happen (or after it).
-     */
     fromSentenceConll(sentenceConll: string): void;
+    /**
+     * Import sentence from object of SentenceJson interface
+     * @param sentenceJson
+     */
+    fromSentenceJson(sentenceJson: SentenceJson): void;
     updateToken(tokenJson: TokenJson): void;
     updateTree(treeJson: TreeJson): void;
     updateSentence(sentenceJson: SentenceJson): void;
