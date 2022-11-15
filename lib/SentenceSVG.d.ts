@@ -17,6 +17,9 @@ export interface SentenceSVGOptions {
             features: string[];
         }[];
     } | null;
+    tokenSpacing: number;
+    featuresHorizontalSpacing: number;
+    arcHeight: number;
 }
 export declare const defaultSentenceSVGOptions: () => SentenceSVGOptions;
 export declare class SentenceSVG extends EventDispatcher {

@@ -15,8 +15,8 @@
 <svg
   id="svgWrapper"
   class="svg-tree"
-  xmlns="http://www.w3.org/2000/svg"
-/>
+  xmlns="http://www.w3.org/2000/svg">
+</svg>
 
 </body>
 <script>
@@ -69,12 +69,13 @@
     const reactiveSentence = new dependencytreejs.ReactiveSentence();
     reactiveSentence.fromSentenceConll(conll);
 
-
-
     const targetSVGElement = document.getElementById("svgWrapper")
 
     const sentenceSVGOptions = dependencytreejs.defaultSentenceSVGOptions()
     sentenceSVGOptions.interactive = true
+    sentenceSVGOptions.tokenSpacing = 20
+    sentenceSVGOptions.arcHeight = 40
+    sentenceSVGOptions.featuresHorizontalSpacing = 18
 
     const sentenceSVG = new dependencytreejs.SentenceSVG(
       targetSVGElement,

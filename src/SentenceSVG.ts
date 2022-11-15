@@ -11,12 +11,9 @@ const SVG_CONFIG = {
   startTextY: 10,
   textgraphdistance: 10,
   dragclickthreshold: 400, // ms
-  depLevelHeight: 60,
   arrowheadsize: 5,
   gapX: 18, // TODO set it properly elsewhere SVG_CONFIG
   sizeFontY: 18, // TODO
-  spacingX: 40,
-  spacingY: 20,
 };
 // const dragclickthreshold = 400; //ms
 
@@ -26,7 +23,6 @@ const SVG_CONFIG = {
 export interface SentenceSVGOptions {
   // usermatches: Array<{ nodes: string; edges: any }>; // TODO : complete this definition
   shownFeatures: string[];
-  // teacherReactiveSentence: ReactiveSentence;
   interactive: boolean;
   matches: string[];
   packages: {
@@ -40,6 +36,9 @@ export interface SentenceSVGOptions {
       features: string[];
     }[];
   } | null;
+  tokenSpacing: number;
+  featuresHorizontalSpacing: number;
+  arcHeight: number;
 }
 
 export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
@@ -47,6 +46,9 @@ export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
   interactive: false,
   matches: [],
   packages: null,
+  tokenSpacing: 40,
+  featuresHorizontalSpacing: 20,
+  arcHeight: 60,
 });
 
 // export interface SentenceSVG extends SentenceSVGOptions {}
@@ -179,7 +181,7 @@ export class SentenceSVG extends EventDispatcher {
   populateTokenSVGs(): void {
     let runningX = 0;
     const maxLevelY = Math.max(...this.levelsArray, 2); // 2 would be the minimum possible level size
-    const offsetY = SVG_CONFIG.startTextY + maxLevelY * SVG_CONFIG.depLevelHeight;
+    const offsetY = SVG_CONFIG.startTextY + maxLevelY * this.options.arcHeight;
 
     // TODO RTL : add iterating through new  getOrderOfTokens()
     for (const tokenJsonIndex of this.orderOfTokens) {
@@ -284,7 +286,7 @@ export class SentenceSVG extends EventDispatcher {
         // );
         continue;
       }
-      tokenSVG.drawRelation(this.snapSentence, headCoordX, SVG_CONFIG.depLevelHeight);
+      tokenSVG.drawRelation(this.snapSentence, headCoordX, this.options.arcHeight);
     }
   }
 
@@ -499,10 +501,10 @@ class TokenSVG {
 
       // increment position except if feature is a FEATS or MISC which is not present for the token
       if (!(['MISC', 'FEATS'].includes(feature.split('.')[0]) && featureText === '')) {
-        runningY += SVG_CONFIG.spacingY;
+        runningY += this.sentenceSVG.options.featuresHorizontalSpacing;
       }
     }
-    this.width = maxFeatureWidth + SVG_CONFIG.spacingX;
+    this.width = maxFeatureWidth + this.sentenceSVG.options.tokenSpacing;
     this.centerX = this.startX + this.width / 2;
 
     this.centerFeatures();
@@ -691,8 +693,7 @@ class TokenSVG {
     this.draggedCurve.attr({ d: path });
     this.draggedArrowhead.transform('translate(' + dx + ',' + dy + ')');
 
-    // TODO : softcode the leveldistance
-    const leveldistance = SVG_CONFIG.depLevelHeight;
+    const leveldistance = this.sentenceSVG.options.arcHeight;
     if (yb + dy < leveldistance / 2 && Math.abs(dx) < leveldistance / 2) {
       if (this.dragRootCircle === undefined) {
         this.dragRootCircle = this.snapSentence.circle(xb, 0, leveldistance / 2).addClass('dragcurve');

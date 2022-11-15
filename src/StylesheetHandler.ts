@@ -55,7 +55,9 @@ const sharedStyleSheet = `
   }
     `;
 
-const lightStylesheet = sharedStyleSheet + `
+const lightStylesheet =
+  sharedStyleSheet +
+  `
     .FORM, .LEMMA {
       fill: black;
     }
@@ -94,7 +96,9 @@ const lightStylesheet = sharedStyleSheet + `
     }
  `;
 
-const darkStylesheet = sharedStyleSheet + `
+const darkStylesheet =
+  sharedStyleSheet +
+  `
       .FORM, .LEMMA {
       fill: #e6e2e2;
     }
