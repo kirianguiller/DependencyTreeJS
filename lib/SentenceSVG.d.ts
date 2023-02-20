@@ -45,6 +45,7 @@ export declare class SentenceSVG extends EventDispatcher {
     drawTree(): void;
     update(reactiveSentence: ReactiveSentence): void;
     plugDiffTree(teacherReactiveSentence: ReactiveSentence): void;
+    unplugDiffTree(): void;
     populateOrderOfTokens(): void;
     populateTokenSVGs(): void;
     updateToken(tokenJson: TokenJson): void;

@@ -133,13 +133,19 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   plugDiffTree(teacherReactiveSentence: ReactiveSentence): void {
-    this.teacherTreeJson = teacherReactiveSentence?.state?.treeJson;
-    if (this.teacherTreeJson) {
+    if (teacherReactiveSentence?.state?.treeJson) {
+      this.teacherTreeJson = teacherReactiveSentence?.state?.treeJson;
+      this.drawTree();
       // TODO : find a way to attach the otherReactiveSentence so it listen to teacher's changes
       // the line below is not working properly as it makes the otherReactiveSentence to update off screen
       // and this make svg drawing not working
       // teacherReactiveSentence.attach(this)
-      this.showDiffs(this.teacherTreeJson);
+    }
+  }
+  unplugDiffTree(): void {
+    if (this.teacherTreeJson) {
+      this.teacherTreeJson = emptyTreeJson();
+      this.drawTree();
     }
   }
 

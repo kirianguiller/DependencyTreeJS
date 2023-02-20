@@ -182,8 +182,21 @@ It will not extend the rules.
 
 If you want to modify the code and quickly preview the changes, you can open public/index.html
 
+### Publish a new version
+```bash
+npm run format
+npm run lint
+# change version in package.json
+npm run build
+# commit the new version
+npm publish
+# if successful push all to github repo
+```
 
 ## Update history
+### 2.2.1
+- add unplugDiffTree()
+- fix plugDiffTree() (not drawing diffs if tree already exist)
 ### 2.1.0 (12 nov 2022)
 - setThemeMode(), that handle DARK and LIGHT mode
 - setStyleSheet(), to allow user to set its own CSS rules for the trees
