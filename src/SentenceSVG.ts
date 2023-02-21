@@ -367,14 +367,21 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   showDiffs(otherTreeJson: TreeJson) {
-    if (!(Object.keys(otherTreeJson.nodesJson).length === 0 && otherTreeJson.nodesJson.constructor === Object)) {
-      for (const tokenIndex in this.tokenSVGs) {
-        // for (const [tokenIndex, tokenSVG] of Object.entries(this.tokenSVGs)) {
-        if (otherTreeJson.nodesJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
-          console.log(`Error, token id ${tokenIndex} doesn't match`);
-        } else {
-          this.tokenSVGs[tokenIndex].showDiff(otherTreeJson.nodesJson[tokenIndex]);
-        }
+    if (otherTreeJson.nodesJson.constructor !== Object) {
+      return;
+    }
+    if (Object.keys(otherTreeJson.nodesJson).length === 0 || Object.keys(this.treeJson.nodesJson).length === 0) {
+      return;
+    }
+    if (Object.keys(otherTreeJson.nodesJson).length !== Object.keys(this.treeJson.nodesJson).length) {
+      return;
+    }
+    for (const tokenIndex in this.tokenSVGs) {
+      // for (const [tokenIndex, tokenSVG] of Object.entries(this.tokenSVGs)) {
+      if (otherTreeJson.nodesJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
+        console.log(`Error, token id ${tokenIndex} doesn't match`);
+      } else {
+        this.tokenSVGs[tokenIndex].showDiff(otherTreeJson.nodesJson[tokenIndex]);
       }
     }
   }

@@ -194,6 +194,8 @@ npm publish
 ```
 
 ## Update history
+### 2.2.2
+- fix: diffmode running even if both tree have different size (and thus creating error for index none existing)
 ### 2.2.1
 - add unplugDiffTree()
 - fix plugDiffTree() (not drawing diffs if tree already exist)
