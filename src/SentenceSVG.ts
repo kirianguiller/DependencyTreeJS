@@ -339,7 +339,7 @@ export class SentenceSVG extends EventDispatcher {
         }
       }
 
-      const modifiedEdgesSrc = this.options.packages.modified_edges.map((modifiedEdge) => modifiedEdge.src);
+      const modifiedEdgesSrc = this.options.packages.modified_edges.map((modifiedEdge) => modifiedEdge.tar);
       for (const tokenSVG of Object.values(this.tokenSVGs)) {
         if (modifiedEdgesSrc.includes(tokenSVG.tokenJson.ID.toString())) {
           tokenSVG.showmodifiededge();
