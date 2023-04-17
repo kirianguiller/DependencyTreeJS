@@ -194,6 +194,10 @@ npm publish
 ```
 
 ## Update history
+### 2.2.5
+- dependency: minor update (webpack)
+### 2.2.4
+- fix: in some cases, deprel labels were not responding to event as they were drawn behind and arrow svg
 ### 2.2.3
 - fix: showPackages was showing the wrong dependency (the head to its head instead of to its gov)
 ### 2.2.2

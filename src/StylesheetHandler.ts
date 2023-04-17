@@ -53,6 +53,11 @@ const sharedStyleSheet = `
     stroke-width: 2;
     fill: none;
   }
+  
+  .arrowhead, .curve, .dragcurve {
+      stroke: black;
+      pointer-events: none;
+    }
     `;
 
 const lightStylesheet =

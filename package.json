@@ -1,6 +1,6 @@
 {
   "name": "dependencytreejs",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "description": "Core data structure for dependency tree in the browser",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^4.1.2",
-    "webpack": "^5.10.0",
+    "webpack": "^5.79.0",
     "webpack-cli": "^4.2.0"
   },
   "dependencies": {
