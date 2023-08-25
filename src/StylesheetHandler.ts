@@ -60,7 +60,7 @@ const sharedStyleSheet = `
     }
     `;
 
-const lightStylesheet =
+export const lightStylesheet =
   sharedStyleSheet +
   `
     .FORM, .LEMMA {
@@ -101,7 +101,7 @@ const lightStylesheet =
     }
  `;
 
-const darkStylesheet =
+export const darkStylesheet =
   sharedStyleSheet +
   `
       .FORM, .LEMMA {

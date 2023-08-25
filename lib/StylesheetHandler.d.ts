@@ -1,3 +1,5 @@
+export declare const lightStylesheet: string;
+export declare const darkStylesheet: string;
 /**
  * Appends CSS content to the head of the site for dependencytreejs
  * @param stylesheet css stylesheet rules string with normal css syntax
