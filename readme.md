@@ -194,6 +194,8 @@ npm publish
 ```
 
 ## Update history
+### 2.3.1
+- fix: add exportable exportPNG and exportSVG in index.ts
 ### 2.3.0
 - add: exportPNG and exportSVG method (in exportHandler.ts/js)
 ### 2.2.5
