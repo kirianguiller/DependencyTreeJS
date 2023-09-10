@@ -5,7 +5,7 @@ import {
   emptyTokenJson,
   constructTextFromTreeJson,
 } from 'conllup/lib/conll';
-import { SentenceJson, TreeJson, TokenJson, FeatureJson, MetaJson } from 'conllup/lib/conll';
+import { sentenceJson_T, treeJson_T, tokenJson_T, featuresJson_T, metaJson_T } from 'conllup/lib/conll';
 
 import { IOriginator, IMemento, ICaretaker } from './MementoPattern';
 import { ISubject, IObserver } from './ObserverPattern';
@@ -54,7 +54,7 @@ export class ReactiveSentence implements IOriginator, ISubject {
    * @type {number} For the sake of simplicity, the Subject's state, essential
    * to all subscribers, is stored in this variable.
    */
-  public state: SentenceJson = emptySentenceJson();
+  public state: sentenceJson_T = emptySentenceJson();
 
   /**
    * @type {Observer[]} List of subscribers. In real life, the list of
@@ -122,23 +122,23 @@ export class ReactiveSentence implements IOriginator, ISubject {
    * Import sentence from object of SentenceJson interface
    * @param sentenceJson
    */
-  public fromSentenceJson(sentenceJson: SentenceJson): void {
+  public fromSentenceJson(sentenceJson: sentenceJson_T): void {
     this.state = JSON.parse(JSON.stringify(sentenceJson));
     this.notify();
   }
 
-  public updateToken(tokenJson: TokenJson): void {
+  public updateToken(tokenJson: tokenJson_T): void {
     tokenJson.ID = tokenJson.ID.toString();
     Object.assign(this.state.treeJson.nodesJson[tokenJson.ID], tokenJson);
     this.notify();
   }
 
-  public updateTree(treeJson: TreeJson): void {
+  public updateTree(treeJson: treeJson_T): void {
     this.state.treeJson = JSON.parse(JSON.stringify(treeJson));
     this.notify();
   }
 
-  public updateSentence(sentenceJson: SentenceJson): void {
+  public updateSentence(sentenceJson: sentenceJson_T): void {
     this.state = JSON.parse(JSON.stringify(sentenceJson));
     this.notify();
   }
@@ -183,8 +183,8 @@ export class ReactiveSentence implements IOriginator, ISubject {
     const allFeaturesSet: string[] = ['FORM', 'LEMMA', 'UPOS', 'XPOS'];
     for (const tokenId in this.state.treeJson.nodesJson) {
       if (this.state.treeJson.nodesJson[tokenId]) {
-        const features: FeatureJson = this.state.treeJson.nodesJson[tokenId].FEATS;
-        const miscs: FeatureJson = this.state.treeJson.nodesJson[tokenId].MISC;
+        const features: featuresJson_T = this.state.treeJson.nodesJson[tokenId].FEATS;
+        const miscs: featuresJson_T = this.state.treeJson.nodesJson[tokenId].MISC;
         for (const feat in features) {
           if (!allFeaturesSet.includes(`FEATS.${feat}`)) {
             allFeaturesSet.push(`FEATS.${feat}`);
@@ -201,14 +201,14 @@ export class ReactiveSentence implements IOriginator, ISubject {
     return allFeaturesSet;
   }
 
-  public exportConllWithModifiedMeta(newMetaJson: MetaJson): string {
+  public exportConllWithModifiedMeta(newMetaJson: metaJson_T): string {
     for (const [metaName, metaValue] of Object.entries(this.state.metaJson)) {
       if (!Object.keys(newMetaJson).includes(metaName)) {
         newMetaJson[metaName] = metaValue;
       }
     }
 
-    const sentenceJsonToExport: SentenceJson = {
+    const sentenceJsonToExport: sentenceJson_T = {
       treeJson: this.state.treeJson,
       metaJson: newMetaJson,
     };

@@ -1,7 +1,7 @@
 import Snap from 'snapsvg-cjs';
 
 import { sentenceConllToJson, sentenceJsonToConll, emptyTreeJson } from 'conllup/lib/conll';
-import { TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
+import { treeJson_T, tokenJson_T, metaJson_T } from 'conllup/lib/conll';
 
 import { EventDispatcher } from './EventDispatcher';
 import { ReactiveSentence } from './ReactiveSentence';
@@ -56,9 +56,9 @@ export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
 export class SentenceSVG extends EventDispatcher {
   // export class SentenceSVG {
   snapSentence: Snap.Paper;
-  treeJson: TreeJson;
-  metaJson: MetaJson;
-  teacherTreeJson: TreeJson = emptyTreeJson();
+  treeJson: treeJson_T;
+  metaJson: metaJson_T;
+  teacherTreeJson: treeJson_T = emptyTreeJson();
   shownFeatures: string[] = [];
   // matchnodes: Array<string>;
   // matchedges: string[];
@@ -202,7 +202,7 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
-  updateToken(tokenJson: TokenJson): void {
+  updateToken(tokenJson: tokenJson_T): void {
     this.treeJson.nodesJson[tokenJson.ID] = tokenJson;
   }
 
@@ -366,7 +366,7 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
-  showDiffs(otherTreeJson: TreeJson) {
+  showDiffs(otherTreeJson: treeJson_T) {
     if (otherTreeJson.nodesJson.constructor !== Object) {
       return;
     }
@@ -438,7 +438,7 @@ export class SentenceSVG extends EventDispatcher {
 
 class TokenSVG {
   // type definitions
-  tokenJson: TokenJson;
+  tokenJson: tokenJson_T;
   sentenceSVG: SentenceSVG;
   startY = 0;
   startX = 0;
@@ -466,12 +466,12 @@ class TokenSVG {
   draggedArrowhead!: Snap.Element;
   dragRootCircle?: Snap.Element;
 
-  constructor(tokenJson: TokenJson, sentenceSVG: SentenceSVG) {
+  constructor(tokenJson: tokenJson_T, sentenceSVG: SentenceSVG) {
     this.sentenceSVG = sentenceSVG;
     this.tokenJson = tokenJson;
 
     // populate the FEATS and MISC child features
-    const listLabels: (keyof TokenJson)[] = ['FEATS', 'MISC'];
+    const listLabels: (keyof tokenJson_T)[] = ['FEATS', 'MISC'];
     for (const label of listLabels) {
       for (const [key, value] of Object.entries(tokenJson[label])) {
         tokenJson[`${label}.${key}`] = value;
@@ -651,7 +651,7 @@ class TokenSVG {
     });
   }
 
-  showDiff(otherTokenJson: TokenJson): void {
+  showDiff(otherTokenJson: tokenJson_T): void {
     if (
       (this.tokenJson.HEAD === 0 || this.tokenJson.HEAD >= 1) &&
       !Object.is(this.tokenJson.HEAD, Number.NaN) &&

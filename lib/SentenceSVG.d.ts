@@ -1,5 +1,5 @@
 import Snap from 'snapsvg-cjs';
-import { TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
+import { treeJson_T, tokenJson_T, metaJson_T } from 'conllup/lib/conll';
 import { EventDispatcher } from './EventDispatcher';
 import { ReactiveSentence } from './ReactiveSentence';
 export interface SentenceSVGOptions {
@@ -24,9 +24,9 @@ export interface SentenceSVGOptions {
 export declare const defaultSentenceSVGOptions: () => SentenceSVGOptions;
 export declare class SentenceSVG extends EventDispatcher {
     snapSentence: Snap.Paper;
-    treeJson: TreeJson;
-    metaJson: MetaJson;
-    teacherTreeJson: TreeJson;
+    treeJson: treeJson_T;
+    metaJson: metaJson_T;
+    teacherTreeJson: treeJson_T;
     shownFeatures: string[];
     tokenSVGs: {
         [key: number]: TokenSVG;
@@ -48,7 +48,7 @@ export declare class SentenceSVG extends EventDispatcher {
     unplugDiffTree(): void;
     populateOrderOfTokens(): void;
     populateTokenSVGs(): void;
-    updateToken(tokenJson: TokenJson): void;
+    updateToken(tokenJson: tokenJson_T): void;
     getHeadsIdsArray(): number[];
     populateLevels(): void;
     getLevel(headsIdsArray: number[], index: number, start: number, end: number): number;
@@ -60,7 +60,7 @@ export declare class SentenceSVG extends EventDispatcher {
     attachEvents(): void;
     attachDraggers(): void;
     attachHovers(): void;
-    showDiffs(otherTreeJson: TreeJson): void;
+    showDiffs(otherTreeJson: treeJson_T): void;
     getDiffStats(otherTreeConll: string): {
         corrects: {
             [key: string]: number;
@@ -73,7 +73,7 @@ export declare class SentenceSVG extends EventDispatcher {
     refresh(): void;
 }
 declare class TokenSVG {
-    tokenJson: TokenJson;
+    tokenJson: tokenJson_T;
     sentenceSVG: SentenceSVG;
     startY: number;
     startX: number;
@@ -93,7 +93,7 @@ declare class TokenSVG {
     draggedCurve: Snap.Element;
     draggedArrowhead: Snap.Element;
     dragRootCircle?: Snap.Element;
-    constructor(tokenJson: TokenJson, sentenceSVG: SentenceSVG);
+    constructor(tokenJson: tokenJson_T, sentenceSVG: SentenceSVG);
     createSnap(snapSentence: Snap.Paper, shownFeatures: string[], startX: number, startY: number): void;
     centerFeatures(): void;
     drawRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number): void;
@@ -104,7 +104,7 @@ declare class TokenSVG {
     attachEvent(): void;
     attachDragger(): void;
     attachHover(): void;
-    showDiff(otherTokenJson: TokenJson): void;
+    showDiff(otherTokenJson: tokenJson_T): void;
     startDrag(): void;
     dragging(dx: number, dy: number): void;
     stopDrag(e: Event): void;

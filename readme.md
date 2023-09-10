@@ -194,6 +194,8 @@ npm publish
 ```
 
 ## Update history
+### 2.4.0
+- update: to conllup-js 3.1.0 (non breaking changes for DependencyTreeJS)
 ### 2.3.1
 - fix: add exportable exportPNG and exportSVG in index.ts
 ### 2.3.0
@@ -216,4 +218,4 @@ npm publish
 - added public/index.html for faster preview
 
 ### 2.0.0 
-Migrate to conllup-js v2.0.0
+Migrate to conllup-js v2.0.0q

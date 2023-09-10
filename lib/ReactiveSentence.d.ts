@@ -1,4 +1,4 @@
-import { SentenceJson, TreeJson, TokenJson, MetaJson } from 'conllup/lib/conll';
+import { sentenceJson_T, treeJson_T, tokenJson_T, metaJson_T } from 'conllup/lib/conll';
 import { IOriginator, IMemento, ICaretaker } from './MementoPattern';
 import { ISubject, IObserver } from './ObserverPattern';
 /**
@@ -28,7 +28,7 @@ export declare class ReactiveSentence implements IOriginator, ISubject {
      * @type {number} For the sake of simplicity, the Subject's state, essential
      * to all subscribers, is stored in this variable.
      */
-    state: SentenceJson;
+    state: sentenceJson_T;
     /**
      * @type {Observer[]} List of subscribers. In real life, the list of
      * subscribers can be stored more comprehensively (categorized by event
@@ -57,16 +57,16 @@ export declare class ReactiveSentence implements IOriginator, ISubject {
      * Import sentence from object of SentenceJson interface
      * @param sentenceJson
      */
-    fromSentenceJson(sentenceJson: SentenceJson): void;
-    updateToken(tokenJson: TokenJson): void;
-    updateTree(treeJson: TreeJson): void;
-    updateSentence(sentenceJson: SentenceJson): void;
+    fromSentenceJson(sentenceJson: sentenceJson_T): void;
+    updateToken(tokenJson: tokenJson_T): void;
+    updateTree(treeJson: treeJson_T): void;
+    updateSentence(sentenceJson: sentenceJson_T): void;
     addEmptyToken(): void;
     exportConll(): string;
     getSentenceText(): string;
     getUndescoredText(): string;
     getAllFeaturesSet(): string[];
-    exportConllWithModifiedMeta(newMetaJson: MetaJson): string;
+    exportConllWithModifiedMeta(newMetaJson: metaJson_T): string;
 }
 export declare class SentenceCaretaker implements ICaretaker {
     private mementos;
