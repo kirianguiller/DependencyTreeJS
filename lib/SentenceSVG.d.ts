@@ -53,6 +53,8 @@ export declare class SentenceSVG extends EventDispatcher {
     populateLevels(): void;
     getLevel(levelsArray: number[], headsIdsArray: number[], index: number, start: number, end: number): number;
     drawRelations(): void;
+    drawEnhancedRelations(): void;
+    computeCurrentMaxHeight(): number;
     adaptSvgCanvas(): void;
     showhighlights(): void;
     showmatches(): void;
@@ -97,6 +99,7 @@ declare class TokenSVG {
     createSnap(snapSentence: Snap.Paper, shownFeatures: string[], startX: number, startY: number): void;
     centerFeatures(): void;
     drawRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number): void;
+    drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: string, Y_start: number): void;
     showhighlight(): void;
     showmatch(): void;
     showmodifiednode(features: string[]): void;

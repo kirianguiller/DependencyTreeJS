@@ -1,6 +1,6 @@
 import { ReactiveSentence, SentenceCaretaker } from './ReactiveSentence';
 import { SentenceSVG, defaultSentenceSVGOptions } from './SentenceSVG';
-import { setThemeMode, setStyleSheet } from './StylesheetHandler';
+import { setThemeMode, setStyleSheet, lightStylesheet } from './StylesheetHandler';
 import { exportPNG, exportSVG } from './exportHandler';
 
 // On DependencyTreeJS loading, we initialize the theme for the trees.
@@ -14,6 +14,7 @@ export default {
   defaultSentenceSVGOptions,
   setThemeMode,
   setStyleSheet,
+  lightStylesheet,
   exportPNG,
   exportSVG,
 };

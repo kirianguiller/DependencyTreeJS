@@ -25,7 +25,7 @@ const sharedStyleSheet = `
   }
   
   
-  .DEPREL {
+  .DEPREL, .DEPRELenhanced {
     font: 12px Arial;
     font-family: sans-serif;
     z-index: 99;
@@ -38,26 +38,25 @@ const sharedStyleSheet = `
   .glossy {
     font-style: italic;
   }
-  
-  .arrowhead {
-    stroke-width: 0.8;
-  }
-  
-  .curve {
+
+  .arrowhead, .curve, .arrowheadenhanced, .curveenhanced {
+      pointer-events: none;
+      fill: none;
+    }
+
+  .curve, .curveenhanced {
     stroke-width: 1.1;
-    fill: none;
     z-index: 0;
   }
   
   .dragcurve {
     stroke-width: 2;
-    fill: none;
   }
-  
-  .arrowhead, .curve, .dragcurve {
-      stroke: black;
-      pointer-events: none;
-    }
+
+  .arrowhead, .arrowheadenhanced {
+    stroke-width: 0.8;
+  }
+
     `;
 
 export const lightStylesheet =
@@ -67,7 +66,7 @@ export const lightStylesheet =
       fill: black;
     }
 
-    .UPOS, .DEPREL {
+    .UPOS, .DEPREL, .DEPRELenhanced {
       fill: #4a0984;;
     }
 
@@ -80,12 +79,16 @@ export const lightStylesheet =
       fill: red;
     }
 
-    .arrowhead {
+    .arrowhead, .arrowheadenhanced {
       fill: white;
     }
 
     .arrowhead, .curve {
       stroke: black;
+    }
+
+    .arrowheadenhanced, .curveenhanced {
+      stroke: blue;
     }
 
     .arrowhead.diff, .curve.diff {
@@ -108,7 +111,7 @@ export const darkStylesheet =
       fill: #e6e2e2;
     }
 
-    .UPOS, .DEPREL {
+    .UPOS, .DEPREL, .DEPRELenhanced {
       fill: #ea6ff4;
     }
 
@@ -120,11 +123,11 @@ export const darkStylesheet =
       fill: #ff2020;
     }
 
-    .arrowhead {
+    .arrowhead, .arrowheadenhanced {
       fill: black;
     }
 
-    .arrowhead, .curve {
+    .arrowhead, .curve, .arrowheadenhanced, .curveenhanced {
       stroke: #e6e2e2;
     }
 

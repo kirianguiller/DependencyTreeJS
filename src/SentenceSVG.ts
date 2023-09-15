@@ -109,6 +109,7 @@ export class SentenceSVG extends EventDispatcher {
     this.populateLevels();
     this.populateTokenSVGs();
     this.drawRelations();
+    this.drawEnhancedRelations();
     this.adaptSvgCanvas();
     this.showhighlights();
 
@@ -305,17 +306,41 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
+  drawEnhancedRelations(): void {
+    const currentMaxHeight = this.computeCurrentMaxHeight(); // we want the DEPS arc to start below the bottomest FEATS/MISC/FORM/etc...
+    for (const tokenSVG of this.tokenSVGs) {
+      for (const [depID, depDEPREL] of Object.entries(tokenSVG.tokenJson.DEPS)) {
+        console.log("KK depID depDEPREL", depID, depDEPREL)
+        const depTokenJson = getNodeFromTreeJson(this.treeJson, depID);
+        if (depTokenJson && depTokenJson.ID !== tokenSVG.tokenJson.HEAD.toString()) {
+          // we don't redraw an enhanced relation that is already a normal relation
+          const depTokenSVG = this.tokenSVGs[this.tokenIndexToSvgPosition[depID]];
+          const headCoordX = depTokenSVG.centerX;
+          const depInfo = `${depID}:${depDEPREL}`
+          console.log("KK depInfo", depInfo)
+          tokenSVG.drawEnhancedRelation(this.snapSentence, headCoordX, this.options.arcHeight, depInfo, currentMaxHeight);
+        }
+      }
+    }
+  }
+
+  computeCurrentMaxHeight() {
+    // compute the current max height of the svg
+    // this is used to adapt the svg canvas size
+    let currentMaxHeight = 0;
+    for (const tokenSVG of this.tokenSVGs) {
+      const tokenSVGHeight = Math.max(
+        ...Object.values(tokenSVG.snapElements).map((snapElement) => snapElement.getBBox().y2),
+      );
+      currentMaxHeight = Math.max(currentMaxHeight, tokenSVGHeight);
+    }
+    return currentMaxHeight;
+  }
+
   adaptSvgCanvas(): void {
     // get the maximum x and y of the svg for resizing the window
     this.totalWidth = Math.max(...this.tokenSVGs.map((x) => x.startX + x.width));
-
-    this.totalHeight = 0;
-    for (const tokenSVG of this.tokenSVGs) {
-      const tokenSVGHeight = Math.max(
-        ...this.options.shownFeatures.map((feature) => tokenSVG.snapElements[feature].getBBox().y2),
-      );
-      this.totalHeight = Math.max(this.totalHeight, tokenSVGHeight);
-    }
+    this.totalHeight = this.computeCurrentMaxHeight();
     this.snapSentence.attr({ width: this.totalWidth + 15 });
     this.snapSentence.attr({ height: this.totalHeight || 1000 }); // 1000 was there in case the SVG pop up after the div, so it give a heigth
   }
@@ -585,6 +610,36 @@ class TokenSVG {
     this.snapElements['arc'] = snapArc;
   }
 
+  drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: string, Y_start: number): void {
+    // const heightArc = this.startY - this.ylevel * levelHeight;
+    const Y_depBoxLowerBound = Y_start;
+    const Y_arcBoxLowerBound = Y_depBoxLowerBound + levelHeight; // this is where we need to add dynamic height of arc
+
+    const X_depBoxCenter = this.centerX;
+    let X_headBoxCenter = 0;
+    
+    const newId = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.ID];
+    const newHead = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.HEAD.toString()];
+    X_headBoxCenter = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
+    const arcPath = getArcPath(X_depBoxCenter, X_headBoxCenter, Y_depBoxLowerBound, Y_depBoxLowerBound, Y_arcBoxLowerBound);
+
+    const snapArc = snapSentence.path(arcPath).addClass('curveenhanced');
+
+    const arrowheadPath = getArrowheadPath(X_depBoxCenter, Y_depBoxLowerBound);
+    const snapArrowhead = snapSentence.path(arrowheadPath).addClass('arrowheadenhanced');
+    snapArrowhead.transform('r180') // rotate the head 180 degrees as it's a reverse drawing
+
+    const deprelX = snapArc.getBBox().x + snapArc.getBBox().w / 2;
+    const deprelY = snapArc.getBBox().y2 + 10;
+
+    const snapDeprel = snapSentence.text(deprelX, deprelY, this.tokenJson.DEPREL).addClass('DEPRELenhanced');
+
+    snapDeprel.attr({ x: deprelX - snapDeprel.getBBox().w / 2 });
+    this.snapElements[`${depsInfo}.DEPREL`] = snapDeprel;
+    this.snapElements[`${depsInfo}.arrowhead`] = snapArrowhead;
+    this.snapElements[`${depsInfo}.arc`] = snapArc;
+  }
+
   showhighlight(): void {
     if (this.tokenJson.MISC.highlight) {
       this.snapElements['FORM'].node.style.fill = this.tokenJson.MISC.highlight;
@@ -826,33 +881,6 @@ function getArcPath(X_start: number, X_end: number, Y_start: number, Y_end: numb
     ',' +
     Y_end
   ); // ending point
-}
-
-function getArcPathReverse(
-  X_depBoxCenter: number,
-  X_headBoxCenter: number,
-  Y_depBoxUpperBound: number,
-  Y_arcBoxUpperBound: number,
-): string {
-  //
-  return (
-    'M' +
-    X_depBoxCenter +
-    ',' +
-    Y_depBoxUpperBound +
-    ' C' +
-    X_depBoxCenter +
-    ',' +
-    (Y_depBoxUpperBound + (Y_depBoxUpperBound - Y_arcBoxUpperBound)) +
-    ' ' +
-    X_headBoxCenter +
-    ',' +
-    (Y_depBoxUpperBound + (Y_depBoxUpperBound - Y_arcBoxUpperBound)) +
-    ' ' +
-    X_headBoxCenter +
-    ',' +
-    Y_depBoxUpperBound
-  );
 }
 
 function getArcPathRoot(X_depBoxCenter: number, Y_depBoxUpperBound: number): string {

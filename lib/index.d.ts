@@ -9,6 +9,7 @@ declare const _default: {
     defaultSentenceSVGOptions: () => import("./SentenceSVG").SentenceSVGOptions;
     setThemeMode: typeof setThemeMode;
     setStyleSheet: typeof setStyleSheet;
+    lightStylesheet: string;
     exportPNG: typeof exportPNG;
     exportSVG: typeof exportSVG;
 };

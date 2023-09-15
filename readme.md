@@ -201,6 +201,8 @@ npm publish
 ```
 
 ## Update history
+### 2.4.2
+- add: compatibility with DEPS relations, which are drawn below the tree.
 ### 2.4.1
 - add: compatibility with empty nodes (enhanced conll specifications)
 ### 2.4.0
