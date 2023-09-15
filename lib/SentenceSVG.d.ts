@@ -88,8 +88,8 @@ declare class TokenSVG {
     draggedForm: Snap.Element;
     draggedFormClone: Snap.Element;
     dragclicktime: number;
-    draggedStartX: number;
-    draggedStartY: number;
+    X_draggedBoxCenter: number;
+    Y_draggedBoxUpper: number;
     draggedCurve: Snap.Element;
     draggedArrowhead: Snap.Element;
     dragRootCircle?: Snap.Element;

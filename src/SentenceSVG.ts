@@ -469,8 +469,8 @@ class TokenSVG {
   draggedFormClone!: Snap.Element;
 
   dragclicktime = 0;
-  draggedStartX = 0;
-  draggedStartY = 0;
+  X_draggedBoxCenter = 0;
+  Y_draggedBoxUpper = 0;
 
   draggedCurve!: Snap.Element;
   draggedArrowhead!: Snap.Element;
@@ -548,24 +548,24 @@ class TokenSVG {
 
     const heightArc = this.startY - this.ylevel * levelHeight;
 
-    const xFrom = this.centerX;
-    let xTo = 0;
-    const yLow = this.startY - SVG_CONFIG.sizeFontY;
-    let yTop = 0;
+    const X_depBoxCenter = this.centerX;
+    let X_headBoxCenter = 0;
+    const Y_depBoxUpperBound = this.startY - SVG_CONFIG.sizeFontY;
+    let Y_arcBoxUpperBound = 0;
     let arcPath = '';
     if (headCoordX === 0) {
-      arcPath = getArcPathRoot(xFrom, yLow);
+      arcPath = getArcPathRoot(X_depBoxCenter, Y_depBoxUpperBound);
     } else {
-      yTop = heightArc;
+      Y_arcBoxUpperBound = heightArc;
       const newId = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.ID];
       const newHead = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.HEAD.toString()];
-      xTo = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
-      arcPath = getArcPath(xFrom, xTo, yLow, yTop);
+      X_headBoxCenter = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
+      arcPath = getArcPath(X_depBoxCenter, X_headBoxCenter, Y_depBoxUpperBound, Y_depBoxUpperBound, Y_arcBoxUpperBound);
     }
 
     const snapArc = snapSentence.path(arcPath).addClass('curve');
 
-    const arrowheadPath = getArrowheadPath(xFrom, yLow);
+    const arrowheadPath = getArrowheadPath(X_depBoxCenter, Y_depBoxUpperBound);
     const snapArrowhead = snapSentence.path(arrowheadPath).addClass('arrowhead');
 
     let deprelX = snapArc.getBBox().x + snapArc.getBBox().w / 2;
@@ -685,18 +685,17 @@ class TokenSVG {
     // create a copy of the FROM that will be deleted after dragging
     this.draggedFormClone = this.draggedForm.clone();
     this.draggedFormClone.attr({ cursor: 'move' });
-    this.draggedStartX = this.centerX;
-    this.draggedStartY = this.draggedForm.getBBox().y;
+    this.X_draggedBoxCenter = this.centerX;
+    this.Y_draggedBoxUpper = this.draggedForm.getBBox().y;
 
     this.sentenceSVG.dragged = this.tokenJson.ID;
 
-    const xb = this.draggedStartX;
-    const yb = this.draggedStartY;
-
-    const path =
-      'M' + xb + ',' + yb + ' C' + xb + ',' + (yb - 1) + ' ' + (xb + 1) + ',' + (yb - 1) + ' ' + (xb + 1) + ',' + yb;
-    this.draggedCurve = this.snapSentence.path(path).addClass('dragcurve');
-    this.draggedArrowhead = this.snapSentence.path(getArrowheadPath(xb, yb)).addClass('dragarrowhead');
+    // starting dragging, we need a dummy empty path so we can reuse it in the dragging function (without needing to add class)
+    const DUMMY_PATH = '';
+    this.draggedCurve = this.snapSentence.path(DUMMY_PATH).addClass('dragcurve');
+    this.draggedArrowhead = this.snapSentence
+      .path(getArrowheadPath(this.X_draggedBoxCenter, this.Y_draggedBoxUpper))
+      .addClass('dragarrowhead');
     this.dragRootCircle = undefined;
   }
 
@@ -705,13 +704,20 @@ class TokenSVG {
     // `this.draggedForm` is the Snap object that's being dragged
     this.draggedFormClone.transform('translate(' + (dx - 15) + ',' + (dy - 30) + ')');
     this.draggedFormClone.addClass('glossy');
-    const xb = this.draggedStartX;
-    const yb = this.draggedStartY;
+    const xb = this.X_draggedBoxCenter;
+    const yb = this.Y_draggedBoxUpper;
 
-    let cy = yb + dy - Math.abs(dx) / 2;
-    if (cy < 0) cy = 0;
-    const path =
-      'M' + xb + ',' + yb + ' C' + xb + ',' + cy + ' ' + (xb + dx) + ',' + cy + ' ' + (xb + dx) + ',' + (yb + dy);
+    const xa = xb + dx;
+    const ya = yb + dy;
+
+    let y_offset = -40; // arc is above tokens
+    // if mouth is slighly below tokens, move arc below tokens
+    if (dy > 6) {
+      y_offset = 40; // arc is below tokens
+    }
+    const Y_top = Math.max(0, yb + dy + y_offset);
+    // let Y_top = Math.max(0, yb + dy - Math.abs(dx) / 2);
+    const path = getArcPath(xb, xa, yb, ya, Y_top);
     this.draggedCurve.attr({ d: path });
     this.draggedArrowhead.transform('translate(' + dx + ',' + dy + ')');
 
@@ -776,11 +782,12 @@ class TokenSVG {
 /////////////// SVG ELEMENT ////////////////
 ///////////////             ////////////////
 
-function getArrowheadPath(xFrom: number, yLow: number): string {
+function getArrowheadPath(X_depBoxCenter: number, Y_depBoxUpperBound: number): string {
+  // gives path for arrowhead X_depBoxCenter is where is the center of the arrow on abscisse
+  // Y_depBoxUpperBound is the bottom of the arrow startpoint (end of arrow)
+
   const arrowheadsize = SVG_CONFIG.arrowheadsize;
-  // gives path for arrowhead x,y startpoint (end of arrow)
-  // var
-  const startpoint = xFrom + ',' + yLow; // to move the arrowhead lower: (y+this.sizes.arrowheadsize/3);
+  const startpoint = X_depBoxCenter + ',' + Y_depBoxUpperBound; // to move the arrowhead lower: (y+this.sizes.arrowheadsize/3);
   const lefttop =
     '0,0' + -arrowheadsize / 2 + ',' + -arrowheadsize * 1.5 + ' ' + -arrowheadsize / 2 + ',' + -arrowheadsize * 1.5;
   const righttop =
@@ -797,10 +804,57 @@ function getArrowheadPath(xFrom: number, yLow: number): string {
   return 'M' + startpoint + 'c' + lefttop + 'c' + righttop + 'z';
 }
 
-function getArcPath(xFrom: number, xTo: number, yLow: number, yTop: number): string {
-  return 'M' + xFrom + ',' + yLow + ' C' + xFrom + ',' + yTop + ' ' + xTo + ',' + yTop + ' ' + xTo + ',' + yLow;
+function getArcPath(X_start: number, X_end: number, Y_start: number, Y_end: number, Y_height: number): string {
+  // X_start,Y_start is the starting position
+  // X_end,Y_end is the ending position
+  // Y_height is the height of the arc
+  return (
+    'M' +
+    X_start +
+    ',' +
+    Y_start + // starting point
+    ' C' +
+    X_start +
+    ',' +
+    Y_height + // first control point
+    ' ' +
+    X_end +
+    ',' +
+    Y_height + // second control point
+    ' ' +
+    X_end +
+    ',' +
+    Y_end
+  ); // ending point
 }
 
-function getArcPathRoot(xFrom: number, yLow: number): string {
-  return 'M' + xFrom + ',' + yLow + ' L' + xFrom + ',' + '0 ';
+function getArcPathReverse(
+  X_depBoxCenter: number,
+  X_headBoxCenter: number,
+  Y_depBoxUpperBound: number,
+  Y_arcBoxUpperBound: number,
+): string {
+  //
+  return (
+    'M' +
+    X_depBoxCenter +
+    ',' +
+    Y_depBoxUpperBound +
+    ' C' +
+    X_depBoxCenter +
+    ',' +
+    (Y_depBoxUpperBound + (Y_depBoxUpperBound - Y_arcBoxUpperBound)) +
+    ' ' +
+    X_headBoxCenter +
+    ',' +
+    (Y_depBoxUpperBound + (Y_depBoxUpperBound - Y_arcBoxUpperBound)) +
+    ' ' +
+    X_headBoxCenter +
+    ',' +
+    Y_depBoxUpperBound
+  );
+}
+
+function getArcPathRoot(X_depBoxCenter: number, Y_depBoxUpperBound: number): string {
+  return 'M' + X_depBoxCenter + ',' + Y_depBoxUpperBound + ' L' + X_depBoxCenter + ',' + '0 ';
 }
