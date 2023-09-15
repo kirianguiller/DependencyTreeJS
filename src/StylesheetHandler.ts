@@ -127,8 +127,12 @@ export const darkStylesheet =
       fill: black;
     }
 
-    .arrowhead, .curve, .arrowheadenhanced, .curveenhanced {
+    .arrowhead, .curve {
       stroke: #e6e2e2;
+    }
+
+    .arrowheadenhanced, .curveenhanced {
+      stroke: blue;
     }
 
     .arrowhead.diff, .curve.diff {

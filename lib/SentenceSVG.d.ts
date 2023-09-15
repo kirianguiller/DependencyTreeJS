@@ -99,7 +99,10 @@ declare class TokenSVG {
     createSnap(snapSentence: Snap.Paper, shownFeatures: string[], startX: number, startY: number): void;
     centerFeatures(): void;
     drawRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number): void;
-    drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: string, Y_start: number): void;
+    drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: {
+        ID: string;
+        DEPREL: string;
+    }, Y_start: number): void;
     showhighlight(): void;
     showmatch(): void;
     showmodifiednode(features: string[]): void;

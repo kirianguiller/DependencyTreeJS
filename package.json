@@ -2,7 +2,7 @@
 
 {
   "name": "dependencytreejs",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "Core data structure for dependency tree in the browser",
   "main": "index.js",
   "scripts": {

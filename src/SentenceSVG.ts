@@ -310,14 +310,12 @@ export class SentenceSVG extends EventDispatcher {
     const currentMaxHeight = this.computeCurrentMaxHeight(); // we want the DEPS arc to start below the bottomest FEATS/MISC/FORM/etc...
     for (const tokenSVG of this.tokenSVGs) {
       for (const [depID, depDEPREL] of Object.entries(tokenSVG.tokenJson.DEPS)) {
-        console.log("KK depID depDEPREL", depID, depDEPREL)
         const depTokenJson = getNodeFromTreeJson(this.treeJson, depID);
         if (depTokenJson && depTokenJson.ID !== tokenSVG.tokenJson.HEAD.toString()) {
           // we don't redraw an enhanced relation that is already a normal relation
           const depTokenSVG = this.tokenSVGs[this.tokenIndexToSvgPosition[depID]];
           const headCoordX = depTokenSVG.centerX;
-          const depInfo = `${depID}:${depDEPREL}`
-          console.log("KK depInfo", depInfo)
+          const depInfo = {ID: depID, DEPREL: depDEPREL}
           tokenSVG.drawEnhancedRelation(this.snapSentence, headCoordX, this.options.arcHeight, depInfo, currentMaxHeight);
         }
       }
@@ -610,9 +608,9 @@ class TokenSVG {
     this.snapElements['arc'] = snapArc;
   }
 
-  drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: string, Y_start: number): void {
+  drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: {ID: string; DEPREL: string}, Y_start: number): void {
     // const heightArc = this.startY - this.ylevel * levelHeight;
-    const Y_depBoxLowerBound = Y_start;
+    const Y_depBoxLowerBound = Y_start + 14;
     const Y_arcBoxLowerBound = Y_depBoxLowerBound + levelHeight; // this is where we need to add dynamic height of arc
 
     const X_depBoxCenter = this.centerX;
@@ -632,7 +630,7 @@ class TokenSVG {
     const deprelX = snapArc.getBBox().x + snapArc.getBBox().w / 2;
     const deprelY = snapArc.getBBox().y2 + 10;
 
-    const snapDeprel = snapSentence.text(deprelX, deprelY, this.tokenJson.DEPREL).addClass('DEPRELenhanced');
+    const snapDeprel = snapSentence.text(deprelX, deprelY, `E:${depsInfo.DEPREL}`).addClass('DEPRELenhanced');
 
     snapDeprel.attr({ x: deprelX - snapDeprel.getBBox().w / 2 });
     this.snapElements[`${depsInfo}.DEPREL`] = snapDeprel;
