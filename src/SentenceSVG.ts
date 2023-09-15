@@ -1,6 +1,12 @@
 import Snap from 'snapsvg-cjs';
 
-import { sentenceConllToJson, sentenceJsonToConll, emptyTreeJson } from 'conllup/lib/conll';
+import {
+  sentenceConllToJson,
+  sentenceJsonToConll,
+  emptyTreeJson,
+  returnTokensInOrder,
+  getNodeFromTreeJson,
+} from 'conllup/lib/conll';
 import { treeJson_T, tokenJson_T, metaJson_T } from 'conllup/lib/conll';
 
 import { EventDispatcher } from './EventDispatcher';
@@ -12,16 +18,21 @@ const SVG_CONFIG = {
   textgraphdistance: 10,
   dragclickthreshold: 400, // ms
   arrowheadsize: 5,
-  gapX: 18, // TODO set it properly elsewhere SVG_CONFIG
-  sizeFontY: 18, // TODO
+  gapX: 18,
+  sizeFontY: 18,
 };
+
+const ROOT_ID_IN_SVG = -1;
+const NOT_SET_LEVEL = -2;
 // const dragclickthreshold = 400; //ms
 
 ///////////////                ////////////////
 ///////////////   SentenceSVG  ////////////////
 ///////////////                ////////////////
 export interface SentenceSVGOptions {
-  // usermatches: Array<{ nodes: string; edges: any }>; // TODO : complete this definition
+  // drawEnhancedRelations: boolean; // TODO
+  drawEnhancedTokens: boolean;
+  drawGroupTokens: boolean;
   shownFeatures: string[];
   interactive: boolean;
   matches: string[];
@@ -42,6 +53,9 @@ export interface SentenceSVGOptions {
 }
 
 export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
+  // drawEnhancedRelations: false, // TODO
+  drawEnhancedTokens: false,
+  drawGroupTokens: false,
   shownFeatures: [],
   interactive: false,
   matches: [],
@@ -50,8 +64,6 @@ export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
   featuresHorizontalSpacing: 20,
   arcHeight: 60,
 });
-
-// export interface SentenceSVG extends SentenceSVGOptions {}
 
 export class SentenceSVG extends EventDispatcher {
   // export class SentenceSVG {
@@ -62,23 +74,17 @@ export class SentenceSVG extends EventDispatcher {
   shownFeatures: string[] = [];
   // matchnodes: Array<string>;
   // matchedges: string[];
-  tokenSVGs: { [key: number]: TokenSVG } = {};
-  dragged = 0;
-  hovered = 0;
+  tokenSVGs: TokenSVG[] = [];
+  dragged: string = '';
+  hovered: string = '';
   totalWidth = 0;
   totalHeight = 0;
   levelsArray: number[] = [];
   orderOfTokens: string[] = [];
-  oldIdToNewId: { [key: number]: number } = {};
+  tokenIndexToSvgPosition: { [key: string]: number } = {};
   options: SentenceSVGOptions = defaultSentenceSVGOptions();
 
-  // constructor(opts: SentenceSVGOptions) {
-  constructor(
-    // svgID: string,
-    svgWrapper: SVGElement,
-    reactiveSentence: ReactiveSentence,
-    sentenceSVGOptions: SentenceSVGOptions,
-  ) {
+  constructor(svgWrapper: SVGElement, reactiveSentence: ReactiveSentence, sentenceSVGOptions: SentenceSVGOptions) {
     super();
     this.snapSentence = Snap(svgWrapper);
     this.treeJson = reactiveSentence.state.treeJson;
@@ -128,7 +134,7 @@ export class SentenceSVG extends EventDispatcher {
   public update(reactiveSentence: ReactiveSentence): void {
     this.treeJson = reactiveSentence.state.treeJson;
     this.metaJson = reactiveSentence.state.metaJson;
-    this.tokenSVGs = {};
+    this.tokenSVGs = [];
     this.refresh();
   }
 
@@ -149,31 +155,36 @@ export class SentenceSVG extends EventDispatcher {
     }
   }
 
-  // The idea is to get the order of tokens visualized (from left to right).
-  // For instance, for a sentence of 6 tokens all in hebrew (all rtl), we should return [6,5,4,3,2,1]
-  // Be careful to not return grouped tokens
   populateOrderOfTokens(): void {
-    let stack = [];
+    // the conllup-js returnTokensInOrder() method doesn't take RightToLeft mode into account
+    // ... as it's a rendering problem only. We still need to modify the stack as we can only render
+    // ... the svg starting from left
+
+    let stack: string[] = [];
     let orderOfTokens: string[] = [];
-    for (const tokenIndex in this.treeJson.nodesJson) {
-      if (this.treeJson.nodesJson[tokenIndex]) {
-        const tokenJson = this.treeJson.nodesJson[tokenIndex];
-        if (this.metaJson.rtl === 'yes') {
-          // the full sentence is in RTL mode
-          stack.push(tokenIndex);
-          if (tokenJson.MISC.rtl !== 'no') {
-            // the token is not in RTL mode (his following token will be at his right)
-            orderOfTokens = stack.concat(orderOfTokens);
-            stack = [];
-          }
-        } else {
-          // the full sentence is in conventional mode
-          stack.unshift(tokenIndex);
-          if (tokenJson.MISC.rtl !== 'yes') {
-            // the token is in RTL mode (his following token will be at his left)
-            orderOfTokens = orderOfTokens.concat(JSON.parse(JSON.stringify(stack)));
-            stack = [];
-          }
+
+    const tokensInOrder = returnTokensInOrder(
+      this.treeJson,
+      this.options.drawEnhancedTokens,
+      this.options.drawGroupTokens,
+    );
+
+    for (const tokenJson of tokensInOrder) {
+      if (this.metaJson.rtl === 'yes') {
+        // the full sentence is in RTL mode
+        stack.push(tokenJson.ID);
+        if (tokenJson.MISC.rtl !== 'no') {
+          // the token is not in RTL mode (his following token will be at his right)
+          orderOfTokens = stack.concat(orderOfTokens);
+          stack = [];
+        }
+      } else {
+        // the full sentence is in conventional mode
+        stack.unshift(tokenJson.ID);
+        if (tokenJson.MISC.rtl !== 'yes') {
+          // the token is in RTL mode (his following token will be at his left)
+          orderOfTokens = orderOfTokens.concat(JSON.parse(JSON.stringify(stack)));
+          stack = [];
         }
       }
     }
@@ -189,16 +200,17 @@ export class SentenceSVG extends EventDispatcher {
     const maxLevelY = Math.max(...this.levelsArray, 2); // 2 would be the minimum possible level size
     const offsetY = SVG_CONFIG.startTextY + maxLevelY * this.options.arcHeight;
 
-    // TODO RTL : add iterating through new  getOrderOfTokens()
+    let tokenSvgIndex = 0;
     for (const tokenJsonIndex of this.orderOfTokens) {
-      const tokenJson = this.treeJson.nodesJson[tokenJsonIndex];
-      const tokenSvgIndex = parseInt(tokenJson.ID, 10);
-
-      const tokenSVG = new TokenSVG(tokenJson, this);
-      this.tokenSVGs[tokenSvgIndex] = tokenSVG;
-      tokenSVG.createSnap(this.snapSentence, this.options.shownFeatures, runningX, offsetY);
-      tokenSVG.ylevel = this.levelsArray[this.oldIdToNewId[tokenSvgIndex]];
-      runningX += tokenSVG.width;
+      const tokenJson = getNodeFromTreeJson(this.treeJson, tokenJsonIndex);
+      if (tokenJson) {
+        const tokenSVG = new TokenSVG(tokenJson, this);
+        this.tokenSVGs.push(tokenSVG);
+        tokenSVG.createSnap(this.snapSentence, this.options.shownFeatures, runningX, offsetY);
+        tokenSVG.ylevel = this.levelsArray[tokenSvgIndex];
+        runningX += tokenSVG.width;
+        tokenSvgIndex += 1;
+      }
     }
   }
 
@@ -207,48 +219,45 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   getHeadsIdsArray(): number[] {
-    this.oldIdToNewId = {};
-    let i = 1;
+    // HeadsIdsArray is the array representing the SvgIndex of the head of each SvgToken
+    this.tokenIndexToSvgPosition = {};
+    let i = 0;
     for (const tokenJsonIndex of this.orderOfTokens) {
-      this.oldIdToNewId[parseInt(tokenJsonIndex, 10)] = i;
+      this.tokenIndexToSvgPosition[tokenJsonIndex] = i;
       i = i + 1;
     }
     const headsIdsArray = [];
     for (const tokenJsonIndex of this.orderOfTokens) {
-      const tokenJson = this.treeJson.nodesJson[tokenJsonIndex];
-      if (tokenJson.HEAD >= 1) {
-        headsIdsArray.push(this.oldIdToNewId[tokenJson.HEAD]);
-      } else {
-        headsIdsArray.push(tokenJson.HEAD);
+      const tokenJson = getNodeFromTreeJson(this.treeJson, tokenJsonIndex);
+      if (tokenJson) {
+        if (tokenJson.HEAD >= 1) {
+          headsIdsArray.push(this.tokenIndexToSvgPosition[tokenJson.HEAD]);
+        } else {
+          headsIdsArray.push(ROOT_ID_IN_SVG);
+        }
       }
     }
     return headsIdsArray;
   }
 
   populateLevels(): void {
-    // populate the list this.levelsArray of length Nnode+1. A fake
-    // ... element is appended at the beginning of the array for easing the loop task
-    // ... (mainly because conll indexes start from 1 and not 0)
+    const headsIdsArray = this.getHeadsIdsArray();
 
-    let headsIdsArray = this.getHeadsIdsArray();
-
-    // add -1 at the beginning of the array for simplifying indexing later
-    headsIdsArray = [-1].concat(headsIdsArray);
-
-    this.levelsArray = new Array(headsIdsArray.length).fill(-1);
-    for (let i = 1; i < headsIdsArray.length; i++) {
-      this.getLevel(headsIdsArray, i, 1, headsIdsArray.length);
+    const levelsArray: number[] = new Array(headsIdsArray.length).fill(ROOT_ID_IN_SVG);
+    for (let i = 0; i < headsIdsArray.length; i++) {
+      this.getLevel(levelsArray, headsIdsArray, i, 0, headsIdsArray.length);
     }
+    this.levelsArray = levelsArray;
   }
 
-  getLevel(headsIdsArray: number[], index: number, start: number, end: number): number {
-    if (this.levelsArray[index] !== -1) {
-      return this.levelsArray[index];
+  getLevel(levelsArray: number[], headsIdsArray: number[], index: number, start: number, end: number): number {
+    if (levelsArray[index] !== ROOT_ID_IN_SVG) {
+      return levelsArray[index];
     }
     const headId = headsIdsArray[index];
     if (headId < start || end < headId) {
-      if (headId === 0) {
-        this.levelsArray[index] = 0;
+      if (headId === ROOT_ID_IN_SVG) {
+        levelsArray[index] = 0;
       }
 
       return 0;
@@ -256,7 +265,7 @@ export class SentenceSVG extends EventDispatcher {
     const inf = Math.min(index, headId);
     const sup = Math.max(index, headId);
     if (sup - inf === 1) {
-      this.levelsArray[index] = 1;
+      levelsArray[index] = 1;
       return 1;
     }
     const levelsSubArray = [];
@@ -266,21 +275,21 @@ export class SentenceSVG extends EventDispatcher {
         levelsSubArray.push(0);
       } else if (inf <= headsIdsArray[i] && headsIdsArray[i] <= sup) {
         // sup is outside the scope for avoiding infinite recursion loop
-        levelsSubArray.push(this.getLevel(headsIdsArray, i, inf, sup));
+        levelsSubArray.push(this.getLevel(levelsArray, headsIdsArray, i, inf, sup));
       }
     }
 
     const level: number = Math.max(...levelsSubArray) + 1;
-    this.levelsArray[index] = level;
+    levelsArray[index] = level;
     return level;
   }
 
   drawRelations(): void {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       const headId = tokenSVG.tokenJson.HEAD;
       let headCoordX = 0;
       if (headId > 0) {
-        const headtokenSVG = this.tokenSVGs[headId];
+        const headtokenSVG = this.tokenSVGs[this.tokenIndexToSvgPosition[headId]];
         headCoordX = headtokenSVG.centerX;
         // if governor is root, draw root relation
       } else if (headId === 0) {
@@ -298,10 +307,10 @@ export class SentenceSVG extends EventDispatcher {
 
   adaptSvgCanvas(): void {
     // get the maximum x and y of the svg for resizing the window
-    this.totalWidth = Math.max(...Object.values(this.tokenSVGs).map((x) => x.startX + x.width));
+    this.totalWidth = Math.max(...this.tokenSVGs.map((x) => x.startX + x.width));
 
     this.totalHeight = 0;
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       const tokenSVGHeight = Math.max(
         ...this.options.shownFeatures.map((feature) => tokenSVG.snapElements[feature].getBBox().y2),
       );
@@ -312,13 +321,13 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   showhighlights() {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       tokenSVG.showhighlight();
     }
   }
 
   showmatches() {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       if (this.options.matches.includes(tokenSVG.tokenJson.ID.toString())) {
         tokenSVG.showmatch();
       }
@@ -328,7 +337,7 @@ export class SentenceSVG extends EventDispatcher {
   showpackages() {
     if (this.options.packages !== null) {
       const modifiedNodesId = this.options.packages.modified_nodes.map((modifiedNode) => modifiedNode.id);
-      for (const tokenSVG of Object.values(this.tokenSVGs)) {
+      for (const tokenSVG of this.tokenSVGs) {
         if (modifiedNodesId.includes(tokenSVG.tokenJson.ID.toString())) {
           const modifiedNode =
             this.options.packages.modified_nodes.filter((mNode) => mNode.id === tokenSVG.tokenJson.ID.toString())[0] ||
@@ -340,7 +349,7 @@ export class SentenceSVG extends EventDispatcher {
       }
 
       const modifiedEdgesSrc = this.options.packages.modified_edges.map((modifiedEdge) => modifiedEdge.tar);
-      for (const tokenSVG of Object.values(this.tokenSVGs)) {
+      for (const tokenSVG of this.tokenSVGs) {
         if (modifiedEdgesSrc.includes(tokenSVG.tokenJson.ID.toString())) {
           tokenSVG.showmodifiededge();
         }
@@ -349,19 +358,19 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   attachEvents() {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       tokenSVG.attachEvent();
     }
   }
 
   attachDraggers() {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       tokenSVG.attachDragger();
     }
   }
 
   attachHovers() {
-    for (const tokenSVG of Object.values(this.tokenSVGs)) {
+    for (const tokenSVG of this.tokenSVGs) {
       tokenSVG.attachHover();
     }
   }
@@ -376,12 +385,13 @@ export class SentenceSVG extends EventDispatcher {
     if (Object.keys(otherTreeJson.nodesJson).length !== Object.keys(this.treeJson.nodesJson).length) {
       return;
     }
-    for (const tokenIndex in this.tokenSVGs) {
-      // for (const [tokenIndex, tokenSVG] of Object.entries(this.tokenSVGs)) {
-      if (otherTreeJson.nodesJson[tokenIndex].FORM !== this.tokenSVGs[tokenIndex].tokenJson.FORM) {
-        console.log(`Error, token id ${tokenIndex} doesn't match`);
+    for (const tokenIndex of this.orderOfTokens) {
+      const otherTokenJson = getNodeFromTreeJson(otherTreeJson, tokenIndex);
+      const thisTokenJson = getNodeFromTreeJson(this.treeJson, tokenIndex);
+      if (otherTokenJson && thisTokenJson && otherTokenJson.FORM === thisTokenJson.FORM) {
+        this.tokenSVGs[this.tokenIndexToSvgPosition[tokenIndex]].showDiff(otherTokenJson);
       } else {
-        this.tokenSVGs[tokenIndex].showDiff(otherTreeJson.nodesJson[tokenIndex]);
+        console.log(`Error, token id ${tokenIndex} doesn't match`);
       }
     }
   }
@@ -547,8 +557,8 @@ class TokenSVG {
       arcPath = getArcPathRoot(xFrom, yLow);
     } else {
       yTop = heightArc;
-      const newId = this.sentenceSVG.oldIdToNewId[parseInt(this.tokenJson.ID, 10)];
-      const newHead = this.sentenceSVG.oldIdToNewId[this.tokenJson.HEAD];
+      const newId = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.ID];
+      const newHead = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.HEAD.toString()];
       xTo = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
       arcPath = getArcPath(xFrom, xTo, yLow, yTop);
     }
@@ -622,7 +632,7 @@ class TokenSVG {
           detail: {
             treeNode: this,
             targetLabel: label,
-            clicked: parseInt(this.tokenJson.ID, 10),
+            clicked: this.tokenJson.ID,
             event: e,
           },
         });
@@ -638,15 +648,15 @@ class TokenSVG {
 
   attachHover(): void {
     this.snapElements['FORM'].mouseover(() => {
-      if (this.sentenceSVG.dragged && parseInt(this.tokenJson.ID, 10) !== this.sentenceSVG.dragged) {
+      if (this.sentenceSVG.dragged && this.tokenJson.ID !== this.sentenceSVG.dragged) {
         this.snapElements['FORM'].addClass('glossy');
-        this.sentenceSVG.hovered = parseInt(this.tokenJson.ID, 10);
+        this.sentenceSVG.hovered = this.tokenJson.ID;
       }
     });
     this.snapElements['FORM'].mouseout(() => {
-      if (this.sentenceSVG.dragged && parseInt(this.tokenJson.ID, 10) !== this.sentenceSVG.dragged) {
+      if (this.sentenceSVG.dragged && this.tokenJson.ID !== this.sentenceSVG.dragged) {
         this.snapElements['FORM'].removeClass('glossy');
-        this.sentenceSVG.hovered = 0;
+        this.sentenceSVG.hovered = '';
       }
     });
   }
@@ -678,7 +688,7 @@ class TokenSVG {
     this.draggedStartX = this.centerX;
     this.draggedStartY = this.draggedForm.getBBox().y;
 
-    this.sentenceSVG.dragged = parseInt(this.tokenJson.ID, 10);
+    this.sentenceSVG.dragged = this.tokenJson.ID;
 
     const xb = this.draggedStartX;
     const yb = this.draggedStartY;
@@ -688,7 +698,6 @@ class TokenSVG {
     this.draggedCurve = this.snapSentence.path(path).addClass('dragcurve');
     this.draggedArrowhead = this.snapSentence.path(getArrowheadPath(xb, yb)).addClass('dragarrowhead');
     this.dragRootCircle = undefined;
-    // TODO add droppables
   }
 
   dragging(dx: number, dy: number): void {
@@ -722,11 +731,10 @@ class TokenSVG {
   stopDrag(e: Event): void {
     let event;
     if (new Date().getTime() < this.dragclicktime + SVG_CONFIG.dragclickthreshold) {
-      // TODO handle form:click
       event = new CustomEvent('svg-click', {
         detail: {
           treeNode: this,
-          clicked: parseInt(this.tokenJson.ID, 10),
+          clicked: this.tokenJson.ID,
           targetLabel: 'FORM',
         },
       });
@@ -743,10 +751,12 @@ class TokenSVG {
       e.stopPropagation();
     }
     this.sentenceSVG.dispatchEvent(event);
-    this.sentenceSVG.dragged = 0;
+    this.sentenceSVG.dragged = '';
     if (this.sentenceSVG.hovered) {
-      this.sentenceSVG.tokenSVGs[this.sentenceSVG.hovered].snapElements['FORM'].removeClass('glossy');
-      this.sentenceSVG.hovered = 0;
+      this.sentenceSVG.tokenSVGs[this.sentenceSVG.tokenIndexToSvgPosition[this.sentenceSVG.hovered]].snapElements[
+        'FORM'
+      ].removeClass('glossy');
+      this.sentenceSVG.hovered = '';
     }
 
     this.draggedFormClone.animate({ transform: 'translate(' + 0 + ',' + 0 + ')' }, 300, () => {

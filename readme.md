@@ -95,11 +95,18 @@ As we need to know where you want the tree to be inserted in the DOM, we require
 
 #### sentenceSVGOptions
 You can initialise the SentenceSVG instance with the following parameters :
+- drawEnhancedTokens
+- drawGroupTokens
 - shownFeatures
 - interactive
 - matches
 - packages
 
+##### drawEnhancedTokens (boolean)
+Whether or not to show the enhanced tokens ("enhanced conll" specifications), which allow to have "empty tokens" represented with an index with a format "X.y" (empty token 3.1 will be an empty token directly following the token 3)
+
+##### drawGroupTokens (boolean)
+Whether or not to show the groups tokens (also called "amalgame")  with indices with a format "X-Y" (3-5 will be the amalgame for tokens 3 4 and 5)
 ##### shownFeatures (string[])
 You can show only a subset of the features on your tree (conlls can contain a lot of information and not everything is relevent for a given application of it)
 
@@ -194,6 +201,8 @@ npm publish
 ```
 
 ## Update history
+### 2.4.1
+- add: compatibility with empty nodes (enhanced conll specifications)
 ### 2.4.0
 - update: to conllup-js 3.1.0 (non breaking changes for DependencyTreeJS)
 ### 2.3.1

@@ -66,33 +66,38 @@ export class ReactiveSentence implements IOriginator, ISubject {
   /**
    * The subscription management methods.
    */
-  public attach(observer: IObserver): void {
+  public attach(observer: IObserver, verbose: boolean = false): void {
     const isExist = this.observers.includes(observer);
-    if (isExist) {
+    if (isExist && verbose) {
       return console.log('Subject: Observer has been attached already.');
     }
-
-    console.log('Subject: Attached an observer.');
+    if (verbose) {
+      console.log('Subject: Attached an observer.');
+    }
     this.observers.push(observer);
   }
 
-  public detach(observer: IObserver): void {
+  public detach(observer: IObserver, verbose: boolean = false): void {
     const observerIndex = this.observers.indexOf(observer);
-    if (observerIndex === -1) {
+    if (observerIndex === -1 && verbose) {
       return console.log('Subject: Nonexistent observer.');
     }
 
+    if (verbose) {
+      console.log('Subject: Detached an observer.');
+    }
     this.observers.splice(observerIndex, 1);
-    console.log('Subject: Detached an observer.');
   }
 
   /**
    * Trigger an update in each subscriber.
    */
-  public notify(): void {
-    console.log(
-      "Subject: The reactiveSentence object changed. Notifying all of the observers by running their 'update()' methods.",
-    );
+  public notify(verbose: boolean = false): void {
+    if (verbose) {
+      console.log(
+        "Subject: The reactiveSentence object changed. Notifying all of the observers by running their 'update()' methods.",
+      );
+    }
     for (const observer of this.observers) {
       observer.update(this);
     }
@@ -129,7 +134,16 @@ export class ReactiveSentence implements IOriginator, ISubject {
 
   public updateToken(tokenJson: tokenJson_T): void {
     tokenJson.ID = tokenJson.ID.toString();
-    Object.assign(this.state.treeJson.nodesJson[tokenJson.ID], tokenJson);
+    if (tokenJson.ID.indexOf('-') > -1) {
+      // is group token
+      Object.assign(this.state.treeJson.groupsJson[tokenJson.ID], tokenJson);
+    } else if (tokenJson.ID.indexOf('.') > -1) {
+      // is enhanced token
+      Object.assign(this.state.treeJson.enhancedNodesJson[tokenJson.ID], tokenJson);
+    } else {
+      // is normal token
+      Object.assign(this.state.treeJson.nodesJson[tokenJson.ID], tokenJson);
+    }
     this.notify();
   }
 
@@ -240,8 +254,8 @@ export class SentenceCaretaker implements ICaretaker {
     return this._currentStateIndex + 1 !== this.mementos.length;
   }
 
-  public undo(): void {
-    if (!this.canUndo()) {
+  public undo(verbose: boolean = false): void {
+    if (!this.canUndo() && verbose) {
       console.log('caretaker: the caretaker mementos was empty');
       return;
     }
@@ -252,8 +266,8 @@ export class SentenceCaretaker implements ICaretaker {
     }
   }
 
-  public redo(): void {
-    if (!this.canRedo()) {
+  public redo(verbose: boolean = false): void {
+    if (!this.canRedo() && verbose) {
       console.log("caretaker: can't redo, you are already at the end of your mementos");
       return;
     }

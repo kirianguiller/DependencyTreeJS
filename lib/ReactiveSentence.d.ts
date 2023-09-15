@@ -38,12 +38,12 @@ export declare class ReactiveSentence implements IOriginator, ISubject {
     /**
      * The subscription management methods.
      */
-    attach(observer: IObserver): void;
-    detach(observer: IObserver): void;
+    attach(observer: IObserver, verbose?: boolean): void;
+    detach(observer: IObserver, verbose?: boolean): void;
     /**
      * Trigger an update in each subscriber.
      */
-    notify(): void;
+    notify(verbose?: boolean): void;
     /**
      * Originator implementation
      */
@@ -76,8 +76,8 @@ export declare class SentenceCaretaker implements ICaretaker {
     backup(): void;
     canUndo(): boolean;
     canRedo(): boolean;
-    undo(): void;
-    redo(): void;
+    undo(verbose?: boolean): void;
+    redo(verbose?: boolean): void;
     showHistory(): void;
     get currentStateIndex(): number;
 }

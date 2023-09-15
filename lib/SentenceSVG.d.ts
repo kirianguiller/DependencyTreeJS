@@ -3,6 +3,8 @@ import { treeJson_T, tokenJson_T, metaJson_T } from 'conllup/lib/conll';
 import { EventDispatcher } from './EventDispatcher';
 import { ReactiveSentence } from './ReactiveSentence';
 export interface SentenceSVGOptions {
+    drawEnhancedTokens: boolean;
+    drawGroupTokens: boolean;
     shownFeatures: string[];
     interactive: boolean;
     matches: string[];
@@ -28,17 +30,15 @@ export declare class SentenceSVG extends EventDispatcher {
     metaJson: metaJson_T;
     teacherTreeJson: treeJson_T;
     shownFeatures: string[];
-    tokenSVGs: {
-        [key: number]: TokenSVG;
-    };
-    dragged: number;
-    hovered: number;
+    tokenSVGs: TokenSVG[];
+    dragged: string;
+    hovered: string;
     totalWidth: number;
     totalHeight: number;
     levelsArray: number[];
     orderOfTokens: string[];
-    oldIdToNewId: {
-        [key: number]: number;
+    tokenIndexToSvgPosition: {
+        [key: string]: number;
     };
     options: SentenceSVGOptions;
     constructor(svgWrapper: SVGElement, reactiveSentence: ReactiveSentence, sentenceSVGOptions: SentenceSVGOptions);
@@ -51,7 +51,7 @@ export declare class SentenceSVG extends EventDispatcher {
     updateToken(tokenJson: tokenJson_T): void;
     getHeadsIdsArray(): number[];
     populateLevels(): void;
-    getLevel(headsIdsArray: number[], index: number, start: number, end: number): number;
+    getLevel(levelsArray: number[], headsIdsArray: number[], index: number, start: number, end: number): number;
     drawRelations(): void;
     adaptSvgCanvas(): void;
     showhighlights(): void;
