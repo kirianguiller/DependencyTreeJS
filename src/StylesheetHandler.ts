@@ -39,7 +39,7 @@ const sharedStyleSheet = `
     font-style: italic;
   }
 
-  .arrowhead, .curve, .arrowheadenhanced, .curveenhanced {
+  .arrowhead, .curve, .arrowheadenhanced, .curveenhanced, .dragcurve {
       pointer-events: none;
       fill: none;
     }

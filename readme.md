@@ -201,8 +201,8 @@ npm publish
 ```
 
 ## Update history
-### 2.4.3
-- minor fix
+### 2.4.4, 2.4.3
+- minor fixes
 ### 2.4.2
 - add: compatibility with DEPS relations, which are drawn below the tree.
 ### 2.4.1

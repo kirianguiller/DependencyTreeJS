@@ -20,10 +20,10 @@ const SVG_CONFIG = {
   arrowheadsize: 5,
   gapX: 18,
   sizeFontY: 18,
+  reverseArcThreshold: 20, // pixels below tokens mouth need to be to reverse the arc
 };
 
 const ROOT_ID_IN_SVG = -1;
-const NOT_SET_LEVEL = -2;
 // const dragclickthreshold = 400; //ms
 
 ///////////////                ////////////////
@@ -104,7 +104,7 @@ export class SentenceSVG extends EventDispatcher {
   }
 
   drawTree() {
-    this.snapSentence.clear();
+    this.clearTree();
     this.populateOrderOfTokens();
     this.populateLevels();
     this.populateTokenSVGs();
@@ -154,6 +154,14 @@ export class SentenceSVG extends EventDispatcher {
       this.teacherTreeJson = emptyTreeJson();
       this.drawTree();
     }
+  }
+
+  clearTree(): void {
+    this.snapSentence.clear();
+    this.tokenSVGs = [];
+    this.levelsArray = [];
+    this.orderOfTokens = [];
+    this.tokenIndexToSvgPosition = {};
   }
 
   populateOrderOfTokens(): void {
@@ -315,8 +323,14 @@ export class SentenceSVG extends EventDispatcher {
           // we don't redraw an enhanced relation that is already a normal relation
           const depTokenSVG = this.tokenSVGs[this.tokenIndexToSvgPosition[depID]];
           const headCoordX = depTokenSVG.centerX;
-          const depInfo = {ID: depID, DEPREL: depDEPREL}
-          tokenSVG.drawEnhancedRelation(this.snapSentence, headCoordX, this.options.arcHeight, depInfo, currentMaxHeight);
+          const depInfo = { ID: depID, DEPREL: depDEPREL };
+          tokenSVG.drawEnhancedRelation(
+            this.snapSentence,
+            headCoordX,
+            this.options.arcHeight,
+            depInfo,
+            currentMaxHeight,
+          );
         }
       }
     }
@@ -608,24 +622,36 @@ class TokenSVG {
     this.snapElements['arc'] = snapArc;
   }
 
-  drawEnhancedRelation(snapSentence: Snap.Paper, headCoordX: number, levelHeight: number, depsInfo: {ID: string; DEPREL: string}, Y_start: number): void {
+  drawEnhancedRelation(
+    snapSentence: Snap.Paper,
+    headCoordX: number,
+    levelHeight: number,
+    depsInfo: { ID: string; DEPREL: string },
+    Y_start: number,
+  ): void {
     // const heightArc = this.startY - this.ylevel * levelHeight;
     const Y_depBoxLowerBound = Y_start + 14;
     const Y_arcBoxLowerBound = Y_depBoxLowerBound + levelHeight; // this is where we need to add dynamic height of arc
 
     const X_depBoxCenter = this.centerX;
     let X_headBoxCenter = 0;
-    
+
     const newId = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.ID];
     const newHead = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.HEAD.toString()];
     X_headBoxCenter = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
-    const arcPath = getArcPath(X_depBoxCenter, X_headBoxCenter, Y_depBoxLowerBound, Y_depBoxLowerBound, Y_arcBoxLowerBound);
+    const arcPath = getArcPath(
+      X_depBoxCenter,
+      X_headBoxCenter,
+      Y_depBoxLowerBound,
+      Y_depBoxLowerBound,
+      Y_arcBoxLowerBound,
+    );
 
     const snapArc = snapSentence.path(arcPath).addClass('curveenhanced');
 
     const arrowheadPath = getArrowheadPath(X_depBoxCenter, Y_depBoxLowerBound);
     const snapArrowhead = snapSentence.path(arrowheadPath).addClass('arrowheadenhanced');
-    snapArrowhead.transform('r180') // rotate the head 180 degrees as it's a reverse drawing
+    snapArrowhead.transform('r180'); // rotate the head 180 degrees as it's a reverse drawing
 
     const deprelX = snapArc.getBBox().x + snapArc.getBBox().w / 2;
     const deprelY = snapArc.getBBox().y2 + 10;
@@ -765,7 +791,7 @@ class TokenSVG {
 
     let y_offset = -40; // arc is above tokens
     // if mouth is slighly below tokens, move arc below tokens
-    if (dy > 6) {
+    if (dy > SVG_CONFIG.reverseArcThreshold) {
       y_offset = 40; // arc is below tokens
     }
     const Y_top = Math.max(0, yb + dy + y_offset);
