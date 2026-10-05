@@ -50,6 +50,7 @@ export interface SentenceSVGOptions {
   tokenSpacing: number;
   featuresHorizontalSpacing: number;
   arcHeight: number;
+  arcStemHeight: number; // length of the straight vertical segment under the arrowhead of an arc (0 = no stem)
 }
 
 export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
@@ -63,6 +64,7 @@ export const defaultSentenceSVGOptions = (): SentenceSVGOptions => ({
   tokenSpacing: 40,
   featuresHorizontalSpacing: 20,
   arcHeight: 60,
+  arcStemHeight: 6,
 });
 
 export class SentenceSVG extends EventDispatcher {
@@ -207,7 +209,8 @@ export class SentenceSVG extends EventDispatcher {
   populateTokenSVGs(): void {
     let runningX = 0;
     const maxLevelY = Math.max(...this.levelsArray, 2); // 2 would be the minimum possible level size
-    const offsetY = SVG_CONFIG.startTextY + maxLevelY * this.options.arcHeight;
+    // the arcs are higher than maxLevelY * arcHeight by the length of the stem under their arrowhead
+    const offsetY = SVG_CONFIG.startTextY + this.options.arcStemHeight + maxLevelY * this.options.arcHeight;
 
     let tokenSvgIndex = 0;
     for (const tokenJsonIndex of this.orderOfTokens) {
@@ -597,7 +600,14 @@ class TokenSVG {
       const newId = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.ID];
       const newHead = this.sentenceSVG.tokenIndexToSvgPosition[this.tokenJson.HEAD.toString()];
       X_headBoxCenter = newId > newHead ? headCoordX + SVG_CONFIG.gapX / 2 : headCoordX - SVG_CONFIG.gapX / 2;
-      arcPath = getArcPath(X_depBoxCenter, X_headBoxCenter, Y_depBoxUpperBound, Y_depBoxUpperBound, Y_arcBoxUpperBound);
+      arcPath = getArcPath(
+        X_depBoxCenter,
+        X_headBoxCenter,
+        Y_depBoxUpperBound,
+        Y_depBoxUpperBound,
+        Y_arcBoxUpperBound,
+        this.sentenceSVG.options.arcStemHeight,
+      );
     }
 
     const snapArc = snapSentence.path(arcPath).addClass('curve');
@@ -645,6 +655,7 @@ class TokenSVG {
       Y_depBoxLowerBound,
       Y_depBoxLowerBound,
       Y_arcBoxLowerBound,
+      this.sentenceSVG.options.arcStemHeight,
     );
 
     const snapArc = snapSentence.path(arcPath).addClass('curveenhanced');
@@ -796,7 +807,7 @@ class TokenSVG {
     }
     const Y_top = Math.max(0, yb + dy + y_offset);
     // let Y_top = Math.max(0, yb + dy - Math.abs(dx) / 2);
-    const path = getArcPath(xb, xa, yb, ya, Y_top);
+    const path = getArcPath(xb, xa, yb, ya, Y_top); // no stems: the dragged end follows the mouse
     this.draggedCurve.attr({ d: path });
     this.draggedArrowhead.transform('translate(' + dx + ',' + dy + ')');
 
@@ -883,23 +894,44 @@ function getArrowheadPath(X_depBoxCenter: number, Y_depBoxUpperBound: number): s
   return 'M' + startpoint + 'c' + lefttop + 'c' + righttop + 'z';
 }
 
-function getArcPath(X_start: number, X_end: number, Y_start: number, Y_end: number, Y_height: number): string {
-  // X_start,Y_start is the starting position
-  // X_end,Y_end is the ending position
-  // Y_height is the height of the arc
+function getArcPath(
+  X_start: number,
+  X_end: number,
+  Y_start: number,
+  Y_end: number,
+  Y_height: number,
+  stemHeight: number = 0,
+): string {
+  // X_start,Y_start is the starting position (the dependent, where the arrowhead is)
+  // X_end,Y_end is the ending position (the governor)
+  // Y_height is the height of the arc (y of the control points of a stemless arc)
+  //
+  // The arc leaves the dependent with a short vertical segment (the "stem") and then curves to the governor,
+  // with its control points moved away from the tokens by the length of the stem. The arrowhead therefore
+  // sits on a straight vertical line instead of on the bend of the curve, where the line used to cross it at
+  // a slant. The governor end has no stem: the arc starts there as a curve.
+  // With stemHeight = 0 the path is the plain curve.
+  const direction = Y_height <= Math.min(Y_start, Y_end) ? -1 : 1; // -1: arc above the tokens, 1: below
+  const stem = Math.max(0, stemHeight);
+  const Y_stem = Y_start + direction * stem;
+  const Y_control = Y_height + direction * stem;
   return (
     'M' +
     X_start +
     ',' +
     Y_start + // starting point
+    ' L' +
+    X_start +
+    ',' +
+    Y_stem + // top of the stem
     ' C' +
     X_start +
     ',' +
-    Y_height + // first control point
+    Y_control + // first control point
     ' ' +
     X_end +
     ',' +
-    Y_height + // second control point
+    Y_control + // second control point
     ' ' +
     X_end +
     ',' +
